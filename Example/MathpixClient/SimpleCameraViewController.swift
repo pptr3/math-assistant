@@ -25,7 +25,22 @@ class SimpleCameraViewController: UIViewController {
     
     @IBAction func onLaunchCamera(_ sender: Any) {
         // Setup camera properties
-        let properties = MathCaptureProperties(captureType: .gesture,
+        /*
+         1.get image
+         2.segment the math operations within image
+         3.give each segmented image in input at MathpixClient.recognize()
+         4.for each image store if operation is correct or not and his starter position on starter image
+         5.augmented reality
+ 
+ 
+ 
+        */
+        MathpixClient.recognize(image: UIImage(named: "equation")!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+            print(result ?? error ?? "")
+            self.outputTextView.text = result.debugDescription
+        }
+        
+       /* let properties = MathCaptureProperties(captureType: .gesture,
                                                requiredButtons: [.flash, .back],
                                                cropColor: UIColor.green,
                                                errorHandling: true)
@@ -37,8 +52,6 @@ class SimpleCameraViewController: UIViewController {
                                    completion:
             { (error, result) in
                 self.outputTextView.text = result.debugDescription + "  " + (error?.localizedDescription ?? "")
-        })
+        })*/
     }
-
- 
 }
