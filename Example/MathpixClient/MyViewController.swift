@@ -21,7 +21,19 @@ class MyViewController: UIViewController {
         }
     }
     @IBAction func button(_ sender: UIButton) {
-        print("button")
+        let properties = MathCaptureProperties(captureType: .gesture,
+                                               requiredButtons: [.flash, .back],
+                                               cropColor: UIColor.green,
+                                               errorHandling: true)
+        
+        // Launch camera with back and completion blocks
+        MathpixClient.launchCamera(source: self,
+                                   outputFormats: [FormatLatex.simplified],
+                                   withProperties: properties,
+                                   completion:
+            { (error, result) in
+                print(result.debugDescription + "  " + (error?.localizedDescription ?? ""))
+        })
     }
     override func viewDidLoad() {
         super.viewDidLoad()
