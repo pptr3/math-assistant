@@ -11,6 +11,7 @@ import MathpixClient
 
 class CustomCameraViewController: MathCaptureViewController {
     
+    @IBOutlet weak var capturedImage: UIImageView!
     var menuButton: UIButton!
 
     override func viewDidLoad() {
@@ -44,6 +45,8 @@ class CustomCameraViewController: MathCaptureViewController {
         
         
     }
+    
+    
     
     // Set crop area callback
     func setupCallbacks() {
@@ -87,8 +90,13 @@ class CustomCameraViewController: MathCaptureViewController {
     
     override func didRecieve(error: Error?, result: RecognitionResult?) {
         print("did recieve result \(result.debugDescription)")
+        
     }
     
+    override func didCapture(_ image: UIImage!) {
+        self.capturedImage.image = image
+        
+    }
     
     
 
