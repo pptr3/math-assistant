@@ -70,7 +70,7 @@ class CustomCameraViewController: MathCaptureViewController {
     
     // MARK: - Actions
     
-    func onMenu() {
+    @objc func onMenu() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Action 1", style: .default, handler: { (_) in
             print("Action 1")
