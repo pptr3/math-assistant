@@ -16,65 +16,46 @@ import Vision
 
 
 @available(iOS 11.0, *)
-class MyViewController: UIViewController {
+class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDelegate {
 
     
+    @IBOutlet weak var planeDetection: UILabel!
     @IBOutlet weak var capturedImage: UIImageView!
-    private var hitTestResult :ARHitTestResult!
     @IBOutlet var outputTextView: UIView!
-    @IBAction func onRecognize(_ sender: UIButton) {
-  /*
-        // Recognize image with mathpix server
-        MathpixClient.recognize(image: UIImage(named: "equation")!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            print(result ?? error ?? "")
-             print(result.debugDescription)
-        }
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-     */
-    }
-    
-    
     @IBOutlet weak var sceneView: ARSCNView!
-   
+    private var hitTestResult :ARHitTestResult!
+    let configuration = ARWorldTrackingConfiguration()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Set the view's delegate
-        sceneView.delegate = self as? ARSCNViewDelegate
-        
-        // Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
-        
-        // Create a new scene
-        let scene = SCNScene()
-        
-        // Set the scene to the view
-        self.sceneView.scene = scene
-        
-        registerGestureRecognizers()
-        //ImageView.transform = ImageView.transform.rotated(by: CGFloat(M_PI_2))
-        
+        self.sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin, ARSCNDebugOptions.showFeaturePoints]
+        self.configuration.planeDetection = .horizontal
+        self.sceneView.session.run(configuration)
+        self.sceneView.delegate = self
+        self.sceneView.autoenablesDefaultLighting = true
+        self.registerGestureRecognizers()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
-        
-        // Run the view's session
-        sceneView.session.run(configuration)
+        self.sceneView.session.run(configuration)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        // Pause the view's session
-        sceneView.session.pause()
+        self.sceneView.session.pause()
+    }
+    
+    //this function is triggered everytime an anchor is placed (which means that a new plane has been detected)
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        guard anchor is ARPlaneAnchor else {return}
+        DispatchQueue.main.async {
+            self.planeDetection.isHidden = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            self.planeDetection.isHidden = true
+        }
+        print("plane detected")
     }
     
     func registerGestureRecognizers() {
