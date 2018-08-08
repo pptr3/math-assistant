@@ -89,8 +89,35 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
         //self.capturedImage.image = capturedImage
         self.recognizeMathOperation(for: capturedImage)
+        let transform = hitTestResult.worldTransform //this transform matrix encodes the position of the detected surface in the third coloumn
+        let thirdCol = transform.columns.3
+        let node = self.createTextNode(string: "ok")
+        node.position = SCNVector3(thirdCol.x, thirdCol.y, thirdCol.z)
+        self.sceneView.scene.rootNode.addChildNode(node)
     }
     
+    func createTextNode(string: String) -> SCNNode {
+        let text = SCNText(string: string, extrusionDepth: 0.05)
+        text.font = UIFont.systemFont(ofSize: 0.4)
+        text.flatness = 0.01
+        text.firstMaterial?.diffuse.contents = UIColor.white
+        
+        let textNode = SCNNode(geometry: text)
+        
+        let fontSize = Float(0.04)
+        textNode.scale = SCNVector3(fontSize, fontSize, fontSize)
+        textNode.eulerAngles = SCNVector3(CGFloat(-90.degreesToRadiants), 0.0, 0.0)
+        /*var minVec = SCNVector3Zero
+         var maxVec = SCNVector3Zero
+         (minVec, maxVec) =  textNode.boundingBox
+         textNode.pivot = SCNMatrix4MakeTranslation(
+         minVec.x + (maxVec.x - minVec.x)/2,
+         minVec.y,
+         minVec.z + (maxVec.z - minVec.z)/2
+         )*/
+        self.centerPivot(for: textNode)
+        return textNode
+    }
     
     
     func recognizeMathOperation(for image :UIImage) {
@@ -100,20 +127,15 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         }
     }
     
-    func displayPredictions(text :String) {
+    func displayPredictions(with text :String) {
         
-        /*   let node = createText(text: text)
-         
+           let node = SCNNode(geometry: SCNText(string: text, extrusionDepth: 0.0))
          node.position = SCNVector3(self.hitTestResult.worldTransform.columns.3.x, self.hitTestResult.worldTransform.columns.3.y, self.hitTestResult.worldTransform.columns.3.z)
          
          self.sceneView.scene.rootNode.addChildNode(node)
-         */
+        
     }
     
-    func createText(text: String) {
-        
-        
-    }
     
     // Convert CIImage to CGImage
     func convert(cmage:CIImage) -> UIImage {
@@ -187,7 +209,14 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         return newImage
     }
     
-    
+    func centerPivot(for node: SCNNode) {
+        let min = node.boundingBox.min
+        let max = node.boundingBox.max
+        node.pivot = SCNMatrix4MakeTranslation(min.x + (max.x - min.x)/2, min.y + (max.y - min.y)/2, min.z + (max.z - min.z)/2)
+    }
 }
 
+extension Int {
+    var degreesToRadiants: Double { return Double(self) * Double.pi/180 }
+}
 
