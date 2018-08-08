@@ -19,6 +19,7 @@ import Vision
 class MyViewController: UIViewController {
 
     
+    @IBOutlet weak var capturedImage: UIImageView!
     private var hitTestResult :ARHitTestResult!
     @IBOutlet var outputTextView: UIView!
     @IBAction func onRecognize(_ sender: UIButton) {
@@ -58,6 +59,23 @@ class MyViewController: UIViewController {
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Create a session configuration
+        let configuration = ARWorldTrackingConfiguration()
+        
+        // Run the view's session
+        sceneView.session.run(configuration)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Pause the view's session
+        sceneView.session.pause()
+    }
+    
     func registerGestureRecognizers() {
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapped))
         self.sceneView.addGestureRecognizer(tapGestureRecognizer)
@@ -84,18 +102,30 @@ class MyViewController: UIViewController {
         
         self.hitTestResult = hitTestResult
         let pixelBuffer = currentFrame.capturedImage
+        let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let capturedImage : UIImage = self.convert(cmage: ciimage)
+        self.capturedImage.image = capturedImage
         print("tap")
-        performVisionRequest(pixelBuffer: pixelBuffer)
+        self.recognizeMathOperation(for: capturedImage)
+    }
+    
+    
+    
+    func recognizeMathOperation(for image :UIImage) {
+        MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+            print(result ?? error ?? "")
+            print(result.debugDescription)
+        }
     }
     
     func displayPredictions(text :String) {
         
-     /*   let node = createText(text: text)
-        
-        node.position = SCNVector3(self.hitTestResult.worldTransform.columns.3.x, self.hitTestResult.worldTransform.columns.3.y, self.hitTestResult.worldTransform.columns.3.z)
-        
-        self.sceneView.scene.rootNode.addChildNode(node)
-        */
+        /*   let node = createText(text: text)
+         
+         node.position = SCNVector3(self.hitTestResult.worldTransform.columns.3.x, self.hitTestResult.worldTransform.columns.3.y, self.hitTestResult.worldTransform.columns.3.z)
+         
+         self.sceneView.scene.rootNode.addChildNode(node)
+         */
     }
     
     func createText(text: String) {
@@ -103,28 +133,14 @@ class MyViewController: UIViewController {
         
     }
     
-    func performVisionRequest(pixelBuffer :CVPixelBuffer) {
-        
-        
-        
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
-        
-        // Run the view's session
-        sceneView.session.run(configuration)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Pause the view's session
-        sceneView.session.pause()
+    // Convert CIImage to CGImage
+    func convert(cmage:CIImage) -> UIImage {
+        let context:CIContext = CIContext.init(options: nil)
+        let cgImage:CGImage = context.createCGImage(cmage, from: cmage.extent)!
+        let image:UIImage = UIImage.init(cgImage: cgImage)
+        return image
     }
     
     
 }
+
