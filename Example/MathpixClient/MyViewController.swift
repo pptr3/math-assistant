@@ -19,6 +19,7 @@ import Vision
 class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDelegate {
 
     
+    @IBOutlet weak var res: UITextView!
     @IBOutlet weak var planeDetection: UILabel!
     @IBOutlet weak var capturedImage: UIImageView!
     @IBOutlet var outputTextView: UIView!
@@ -101,20 +102,10 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         text.font = UIFont.systemFont(ofSize: 0.4)
         text.flatness = 0.01
         text.firstMaterial?.diffuse.contents = UIColor.white
-        
         let textNode = SCNNode(geometry: text)
-        
         let fontSize = Float(0.04)
         textNode.scale = SCNVector3(fontSize, fontSize, fontSize)
         textNode.eulerAngles = SCNVector3(CGFloat(-90.degreesToRadiants), 0.0, 0.0)
-        /*var minVec = SCNVector3Zero
-         var maxVec = SCNVector3Zero
-         (minVec, maxVec) =  textNode.boundingBox
-         textNode.pivot = SCNMatrix4MakeTranslation(
-         minVec.x + (maxVec.x - minVec.x)/2,
-         minVec.y,
-         minVec.z + (maxVec.z - minVec.z)/2
-         )*/
         self.centerPivot(for: textNode)
         return textNode
     }
@@ -122,19 +113,14 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
     
     func recognizeMathOperation(for image :UIImage) {
         MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            print(result ?? error ?? "")
-            print(result.debugDescription)
+           // print(result ?? error ?? "")
+           // print(result.debugDescription)
+            self.res.text =  String(result.debugDescription)
+            
         }
+           
     }
     
-    func displayPredictions(with text :String) {
-        
-           let node = SCNNode(geometry: SCNText(string: text, extrusionDepth: 0.0))
-         node.position = SCNVector3(self.hitTestResult.worldTransform.columns.3.x, self.hitTestResult.worldTransform.columns.3.y, self.hitTestResult.worldTransform.columns.3.z)
-         
-         self.sceneView.scene.rootNode.addChildNode(node)
-        
-    }
     
     
     // Convert CIImage to CGImage
@@ -143,13 +129,9 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         let cgImage:CGImage = context.createCGImage(cmage, from: cmage.extent)!
         let image:UIImage = UIImage.init(cgImage: cgImage)
         return image
-       // self.capturedImage.transform = CGAffineTransform(rotationAngle: CGFloat.pi/2)
-       // let rect = CGRect(x: 0, y: 0, width: 50, height: 100)
-        //return self.cropImage(image, bounds: rect)!
     }
     
      func cropImage(_ image: UIImage, bounds: CGRect) -> UIImage? {
-        
         //Resize image with aspectRation to screen
         var rect = CGRect.zero
         let aspectX = image.size.width / bounds.size.width
@@ -219,4 +201,45 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
 extension Int {
     var degreesToRadiants: Double { return Double(self) * Double.pi/180 }
 }
+
+extension String {
+    
+    func contains(find: String) -> Bool{
+        return self.range(of: find) != nil
+    }
+    
+    func containsIgnoringCase(find: String) -> Bool{
+        return self.range(of: find, options: .caseInsensitive) != nil
+    }
+    
+    
+}
+
+extension StringProtocol where Index == String.Index {
+    func index<T: StringProtocol>(of string: T, options: String.CompareOptions = []) -> Index? {
+        return range(of: string, options: options)?.lowerBound
+    }
+    func endIndex<T: StringProtocol>(of string: T, options: String.CompareOptions = []) -> Index? {
+        return range(of: string, options: options)?.upperBound
+    }
+    func indexes<T: StringProtocol>(of string: T, options: String.CompareOptions = []) -> [Index] {
+        var result: [Index] = []
+        var start = startIndex
+        while start < endIndex, let range = range(of: string, options: options, range: start..<endIndex) {
+            result.append(range.lowerBound)
+            start = range.lowerBound < range.upperBound ? range.upperBound : index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
+        }
+        return result
+    }
+    func ranges<T: StringProtocol>(of string: T, options: String.CompareOptions = []) -> [Range<Index>] {
+        var result: [Range<Index>] = []
+        var start = startIndex
+        while start < endIndex, let range = range(of: string, options: options, range: start..<endIndex) {
+            result.append(range)
+            start = range.lowerBound < range.upperBound  ? range.upperBound : index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
+        }
+        return result
+    }
+}
+
 
