@@ -293,7 +293,7 @@
     [UIView animateWithDuration:0.3 animations:^{
         self.center = CGPointMake(self.center.x, self.center.y*3);
     } completion:^(BOOL finished) {
-        [self.captureManager stop];
+        [_captureManager stop];
         [self removeFromSuperview];
     }];
 }
@@ -395,7 +395,7 @@
     [self focusAtPoint:CGPointMake(self.frame.size.width/2, self.frame.size.height/2) completionHandler:^{}];
 }
 
-- (void)focusAtPoint:(CGPoint)point completionHandler:(void(^)(void))completionHandler
+- (void)focusAtPoint:(CGPoint)point completionHandler:(void(^)())completionHandler
 {
     AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];;
     CGPoint pointOfInterest = CGPointZero;
