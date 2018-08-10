@@ -70,6 +70,23 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
         //self.capturedImage.image = capturedImage
         self.recognizeMathOperation(for: capturedImage)
+        if let rgbCapturedImage = RGBAImage(image: capturedImage) {
+            //testing drawing on image
+            let y = 100
+            for x in 0..<100 {
+    
+                let index = y * rgbCapturedImage.width + x
+                var pixel = rgbCapturedImage.pixels[index]
+            
+                //here I'm setting one pixel of my rgb image to be red
+                pixel.red = 255
+                pixel.green = 0
+                pixel.blue = 0
+                rgbCapturedImage.pixels[index] = pixel
+            }
+            let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
+            self.capturedImage.image = newUIImageFromRGBAImage
+        }
     }
     
     func recognizeMathOperation(for image :UIImage) {
@@ -81,8 +98,6 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         }
            
     }
-    
-    
     
     // Convert CIImage to CGImage
     func convert(cmage:CIImage) -> UIImage {
