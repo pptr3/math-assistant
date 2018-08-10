@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2C3562371F63D55200B2E2B4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2C3562361F63D55200B2E2B4 /* Localizable.strings */; };
 		2FB29F48211DE9E90054BD6D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB29F47211DE9E90054BD6D /* ViewController.swift */; };
+		2FB29F4A211DEE9D0054BD6D /* PreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB29F49211DEE9D0054BD6D /* PreviewViewController.swift */; };
 		44DB0AB3A13588FE38642C8D /* Pods_MathpixClient_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70DE88B42EE2F86B77AF7F12 /* Pods_MathpixClient_Tests.framework */; };
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
 		607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607FACD91AFB9204008FA782 /* Main.storyboard */; };
@@ -32,6 +33,7 @@
 		25B64AB002E621A1E25EEE0A /* MathpixClient.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = MathpixClient.podspec; path = ../MathpixClient.podspec; sourceTree = "<group>"; };
 		2C3562361F63D55200B2E2B4 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		2FB29F47211DE9E90054BD6D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		2FB29F49211DEE9D0054BD6D /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		346DF766F12E5555C5EBD968 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* MathpixClient_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MathpixClient_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				2FB29F47211DE9E90054BD6D /* ViewController.swift */,
+				2FB29F49211DEE9D0054BD6D /* PreviewViewController.swift */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
 				607FACD31AFB9204008FA782 /* Supporting Files */,
@@ -354,6 +357,7 @@
 			files = (
 				2FB29F48211DE9E90054BD6D /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
+				2FB29F4A211DEE9D0054BD6D /* PreviewViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -511,7 +515,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = it.petrupotrimba.mathpix.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -528,7 +532,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = it.petrupotrimba.mathpix.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
