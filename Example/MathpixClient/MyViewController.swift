@@ -87,7 +87,7 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
             let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
             self.capturedImage.image = newUIImageFromRGBAImage
         }*/
-        let textImage = textToImage(drawText: "CIAO", inImage: capturedImage, atPoint: CGPoint(x: 200, y: 200))
+        let textImage = textToImage(drawText: "❌", inImage: capturedImage, atPoint: CGPoint(x: 200, y: 200))
         self.capturedImage.image = textImage
     }
     
