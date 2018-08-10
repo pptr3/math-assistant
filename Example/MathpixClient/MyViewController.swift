@@ -22,27 +22,6 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
     
     
     
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-       
-        
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-    }
-    
-    
-   
-    
-    
     func recognizeMathOperation(for image :UIImage) {
         MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
            // print(result ?? error ?? "")
