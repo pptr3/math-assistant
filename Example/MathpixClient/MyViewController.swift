@@ -70,7 +70,7 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
         //self.capturedImage.image = capturedImage
         self.recognizeMathOperation(for: capturedImage)
-        if let rgbCapturedImage = RGBAImage(image: capturedImage) {
+      /*  if let rgbCapturedImage = RGBAImage(image: capturedImage) {
             //testing drawing on image
             let y = 100
             for x in 0..<100 {
@@ -86,7 +86,9 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
             }
             let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
             self.capturedImage.image = newUIImageFromRGBAImage
-        }
+        }*/
+        let textImage = textToImage(drawText: "CIAO", inImage: capturedImage, atPoint: CGPoint(x: 200, y: 200))
+        self.capturedImage.image = textImage
     }
     
     func recognizeMathOperation(for image :UIImage) {
@@ -171,6 +173,28 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         let min = node.boundingBox.min
         let max = node.boundingBox.max
         node.pivot = SCNMatrix4MakeTranslation(min.x + (max.x - min.x)/2, min.y + (max.y - min.y)/2, min.z + (max.z - min.z)/2)
+    }
+    
+    func textToImage(drawText text: String, inImage image: UIImage, atPoint point: CGPoint) -> UIImage {
+        let textColor = UIColor.blue
+        let textFont = UIFont(name: "Helvetica Bold", size: 200)!
+        
+        let scale = UIScreen.main.scale
+        UIGraphicsBeginImageContextWithOptions(image.size, false, scale)
+        
+        let textFontAttributes = [
+            NSAttributedString.Key.font: textFont,
+            NSAttributedString.Key.foregroundColor: textColor,
+            ] as [NSAttributedString.Key : Any]
+        image.draw(in: CGRect(origin: CGPoint.zero, size: image.size))
+        
+        let rect = CGRect(origin: point, size: image.size)
+        text.draw(in: rect, withAttributes: textFontAttributes)
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage!
     }
 }
 
