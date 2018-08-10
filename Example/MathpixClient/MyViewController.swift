@@ -20,20 +20,17 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
 
     
     @IBOutlet weak var res: UITextView!
-    @IBOutlet weak var planeDetection: UILabel!
     @IBOutlet weak var capturedImage: UIImageView!
     @IBOutlet var outputTextView: UIView!
     @IBOutlet weak var sceneView: ARSCNView!
+    
     private var hitTestResult :ARHitTestResult!
     let configuration = ARWorldTrackingConfiguration()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin, ARSCNDebugOptions.showFeaturePoints]
-        self.configuration.planeDetection = .horizontal
         self.sceneView.session.run(configuration)
         self.sceneView.delegate = self
-        self.sceneView.autoenablesDefaultLighting = true
         self.registerGestureRecognizers()
     }
     
@@ -47,17 +44,6 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         self.sceneView.session.pause()
     }
     
-    //this function is triggered everytime an anchor is placed (which means that a new plane has been detected)
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        guard anchor is ARPlaneAnchor else {return}
-        DispatchQueue.main.async {
-            self.planeDetection.isHidden = false
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            self.planeDetection.isHidden = true
-        }
-        print("plane detected")
-    }
     
     func registerGestureRecognizers() {
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapped))
@@ -65,24 +51,18 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
     }
     
     @objc func tapped(recognizer :UIGestureRecognizer) {
-        
         let sceneView = recognizer.view as! ARSCNView
         let touchLocation = self.sceneView.center
-        
         guard let currentFrame = sceneView.session.currentFrame else {
             return
         }
-        
         let hitTestResults = sceneView.hitTest(touchLocation, types: .featurePoint)
-        
         if hitTestResults.isEmpty {
             return
         }
-        
         guard let hitTestResult = hitTestResults.first else {
             return
         }
-        
         self.hitTestResult = hitTestResult
         let pixelBuffer = currentFrame.capturedImage
         let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
@@ -90,26 +70,7 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
         //self.capturedImage.image = capturedImage
         self.recognizeMathOperation(for: capturedImage)
-        let transform = hitTestResult.worldTransform //this transform matrix encodes the position of the detected surface in the third coloumn
-        let thirdCol = transform.columns.3
-        let node = self.createTextNode(string: "ok")
-        node.position = SCNVector3(thirdCol.x, thirdCol.y, thirdCol.z)
-        self.sceneView.scene.rootNode.addChildNode(node)
     }
-    
-    func createTextNode(string: String) -> SCNNode {
-        let text = SCNText(string: string, extrusionDepth: 0.05)
-        text.font = UIFont.systemFont(ofSize: 0.4)
-        text.flatness = 0.01
-        text.firstMaterial?.diffuse.contents = UIColor.white
-        let textNode = SCNNode(geometry: text)
-        let fontSize = Float(0.04)
-        textNode.scale = SCNVector3(fontSize, fontSize, fontSize)
-        textNode.eulerAngles = SCNVector3(CGFloat(-90.degreesToRadiants), 0.0, 0.0)
-        self.centerPivot(for: textNode)
-        return textNode
-    }
-    
     
     func recognizeMathOperation(for image :UIImage) {
         MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
@@ -131,7 +92,7 @@ class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDel
         return image
     }
     
-     func cropImage(_ image: UIImage, bounds: CGRect) -> UIImage? {
+    func cropImage(_ image: UIImage, bounds: CGRect) -> UIImage? {
         //Resize image with aspectRation to screen
         var rect = CGRect.zero
         let aspectX = image.size.width / bounds.size.width

@@ -22,9 +22,10 @@ class RecognizeViewController: UIViewController {
     @IBAction func onRecognize(_ sender: Any) {
         self.outputTextView.text = "recognition ..."
         // Recognize image with mathpix server
-        MathpixClient.recognize(image: UIImage(named: "equation")!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+        MathpixClient.recognize(image: UIImage(named: "myimage")!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
             print(result ?? error ?? "")
             self.outputTextView.text = result.debugDescription
+            print(result.debugDescription)
         }
     }
     
