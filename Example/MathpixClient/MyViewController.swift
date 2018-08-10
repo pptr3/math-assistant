@@ -19,83 +19,35 @@ import Vision
 class MyViewController: UIViewController, UICollectionViewDelegate, ARSCNViewDelegate {
 
     
-    @IBOutlet weak var res: UITextView!
-    @IBOutlet weak var capturedImage: UIImageView!
-    @IBOutlet var outputTextView: UIView!
-    @IBOutlet weak var sceneView: ARSCNView!
     
-    private var hitTestResult :ARHitTestResult!
-    let configuration = ARWorldTrackingConfiguration()
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.sceneView.session.run(configuration)
-        self.sceneView.delegate = self
-        self.registerGestureRecognizers()
+       
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.sceneView.session.run(configuration)
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.sceneView.session.pause()
+        
     }
     
     
-    func registerGestureRecognizers() {
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapped))
-        self.sceneView.addGestureRecognizer(tapGestureRecognizer)
-    }
+   
     
-    @objc func tapped(recognizer :UIGestureRecognizer) {
-        let sceneView = recognizer.view as! ARSCNView
-        let touchLocation = self.sceneView.center
-        guard let currentFrame = sceneView.session.currentFrame else {
-            return
-        }
-        let hitTestResults = sceneView.hitTest(touchLocation, types: .featurePoint)
-        if hitTestResults.isEmpty {
-            return
-        }
-        guard let hitTestResult = hitTestResults.first else {
-            return
-        }
-        self.hitTestResult = hitTestResult
-        let pixelBuffer = currentFrame.capturedImage
-        let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        var capturedImage : UIImage = self.convert(cmage: ciimage)
-        capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
-        //self.capturedImage.image = capturedImage
-        self.recognizeMathOperation(for: capturedImage)
-      /*  if let rgbCapturedImage = RGBAImage(image: capturedImage) {
-            //testing drawing on image
-            let y = 100
-            for x in 0..<100 {
-    
-                let index = y * rgbCapturedImage.width + x
-                var pixel = rgbCapturedImage.pixels[index]
-            
-                //here I'm setting one pixel of my rgb image to be red
-                pixel.red = 255
-                pixel.green = 0
-                pixel.blue = 0
-                rgbCapturedImage.pixels[index] = pixel
-            }
-            let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
-            self.capturedImage.image = newUIImageFromRGBAImage
-        }*/
-        let textImage = textToImage(drawText: "❌", inImage: capturedImage, atPoint: CGPoint(x: 200, y: 200))
-        self.capturedImage.image = textImage
-    }
     
     func recognizeMathOperation(for image :UIImage) {
         MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
            // print(result ?? error ?? "")
            // print(result.debugDescription)
-            self.res.text =  String(result.debugDescription)
+            
             
         }
            
