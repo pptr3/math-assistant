@@ -81,11 +81,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 let photoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoVC") as! PhotoViewController
                 
                 photoVC.takenPhoto = image
-                MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                    print(result ?? error ?? "")
-                    
-                }
                 DispatchQueue.main.async {
+                    self.recognizeMathOperation(for: image)
                     self.present(photoVC, animated: true, completion: { 
                         self.stopCaptureSession()
                     })
@@ -126,7 +123,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     func recognizeMathOperation(for image :UIImage){
-        MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+        MathpixClient.recognize(image: imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
             print(result.debugDescription)
         }
     }
