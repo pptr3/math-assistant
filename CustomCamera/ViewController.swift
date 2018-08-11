@@ -81,6 +81,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 let photoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoVC") as! PhotoViewController
                 
                 photoVC.takenPhoto = image
+                photoVC.takenPhoto = self.textToImage(drawText: "DebugMe", inImage: photoVC.takenPhoto!, atPoint: CGPoint(x: 100, y: 200))
                 DispatchQueue.main.async {
                     self.recognizeMathOperation(for: image)
                     self.present(photoVC, animated: true, completion: { 
@@ -119,7 +120,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 self.captureSession.removeInput(input)
             }
         }
-        
     }
     
     func recognizeMathOperation(for image :UIImage){
@@ -149,7 +149,27 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         return newImage
     }
     
-    
+    func textToImage(drawText text: NSString, inImage image: UIImage, atPoint point: CGPoint) -> UIImage {
+        let textColor = UIColor.blue
+        let textFont = UIFont(name: "Helvetica Bold", size: 50)!
+        
+        let scale = UIScreen.main.scale
+        UIGraphicsBeginImageContextWithOptions(image.size, false, scale)
+        
+        let textFontAttributes = [
+            NSFontAttributeName: textFont,
+            NSForegroundColorAttributeName: textColor,
+            ] as [String : Any]
+        image.draw(in: CGRect(origin: CGPoint.zero, size: image.size))
+        
+        let rect = CGRect(origin: point, size: image.size)
+        text.draw(in: rect, withAttributes: textFontAttributes)
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage!
+    }
 
 
 }
