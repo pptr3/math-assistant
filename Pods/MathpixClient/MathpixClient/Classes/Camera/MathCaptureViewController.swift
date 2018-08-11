@@ -258,12 +258,12 @@ open class MathCaptureViewController: UIViewController
     // MARK: - Actions
 
     /// Turn on torch on camera.
-    @objc public func onFlash() {
+    public func onFlash() {
         self.cameraView.onTapFlashButton()
     }
     
     /// This method capture image when invoked.
-    @objc public func onCapture() {
+    public func onCapture() {
         changeControlsState(isEnabled: false)
         self.cropOverlay.flashCrop()
         self.cameraView.onTapShutterButton()
@@ -274,7 +274,7 @@ open class MathCaptureViewController: UIViewController
     }
     
     /// Cancel recognition process
-    @objc public func onCancel() {
+    public func onCancel() {
         changeControlsState(isEnabled: true)
         if let id = currentRequestId {
             MathpixClient.cancelRequest(id)
@@ -282,7 +282,7 @@ open class MathCaptureViewController: UIViewController
     }
     
     /// Dismiss current controller
-    @objc public func onBack() {
+    public func onBack() {
         backButtonCallback?()
         self.dismiss(animated: true)
     }

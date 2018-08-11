@@ -2,168 +2,127 @@ import UIKit
 import AVFoundation
 import MathpixClient
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
 
-    @IBOutlet weak var cameraButton: UIButton!
-    var captureSession = AVCaptureSession()
-    var backCamera: AVCaptureDevice?
-    var frontCamera: AVCaptureDevice?
-    var currentDevice: AVCaptureDevice?
-   
-    var photoOutput: AVCapturePhotoOutput?
+    let captureSession = AVCaptureSession()
+    var previewLayer:CALayer!
     
-    var cameraPreviewLayer:AVCaptureVideoPreviewLayer?
+    var captureDevice:AVCaptureDevice!
     
-    var image: UIImage?
-    
-    var toggleCameraGestureRecognizer = UISwipeGestureRecognizer()
-    
-    var zoomInGestureRecognizer = UISwipeGestureRecognizer()
-    var zoomOutGestureRecognizer = UISwipeGestureRecognizer()
+    var takePhoto = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupCaptureSession()
-        setupDevice()
-        setupInputOutput()
-        setupPreviewLayer()
-        captureSession.startRunning()
-        
-        toggleCameraGestureRecognizer.direction = .up
-        toggleCameraGestureRecognizer.addTarget(self, action: #selector(self.switchCamera))
-        view.addGestureRecognizer(toggleCameraGestureRecognizer)
-        
-        // Zoom In recognizer
-        zoomInGestureRecognizer.direction = .right
-        zoomInGestureRecognizer.addTarget(self, action: #selector(zoomIn))
-        view.addGestureRecognizer(zoomInGestureRecognizer)
-        
-        // Zoom Out recognizer
-        zoomOutGestureRecognizer.direction = .left
-        zoomOutGestureRecognizer.addTarget(self, action: #selector(zoomOut))
-        view.addGestureRecognizer(zoomOutGestureRecognizer)
-        styleCaptureButton()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        prepareCamera()
     }
     
     
-    func styleCaptureButton() {
-        cameraButton.layer.borderColor = UIColor.white.cgColor
-        cameraButton.layer.borderWidth = 5
-        cameraButton.clipsToBounds = true
-        cameraButton.layer.cornerRadius = min(cameraButton.frame.width, cameraButton.frame.height) / 2
-    }
-    
-    func setupCaptureSession() {
-        captureSession.sessionPreset = AVCaptureSession.Preset.photo
-    }
-    
-    func setupDevice() {
-        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.unspecified)
-        let devices = deviceDiscoverySession.devices
+    func prepareCamera() {
+        captureSession.sessionPreset = AVCaptureSessionPresetPhoto
         
-        for device in devices {
-            if device.position == AVCaptureDevice.Position.back {
-                backCamera = device
-            } else if device.position == AVCaptureDevice.Position.front {
-                frontCamera = device
-            }
+        if let availableDevices = AVCaptureDeviceDiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: AVMediaTypeVideo, position: .back).devices {
+            captureDevice = availableDevices.first
+            beginSession()
         }
-        currentDevice = backCamera
+        
     }
     
-    func setupInputOutput() {
+    func beginSession () {
         do {
+            let captureDeviceInput = try AVCaptureDeviceInput(device: captureDevice)
             
-            let captureDeviceInput = try AVCaptureDeviceInput(device: currentDevice!)
             captureSession.addInput(captureDeviceInput)
-            photoOutput = AVCapturePhotoOutput()
-            photoOutput!.setPreparedPhotoSettingsArray([AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecType.jpeg])], completionHandler: nil)
-            captureSession.addOutput(photoOutput!)
+            
+        }catch {
+            print(error.localizedDescription)
+        }
+        
+        
+        if let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession) {
+            self.previewLayer = previewLayer
+            self.view.layer.addSublayer(self.previewLayer)
+            self.previewLayer.frame = self.view.layer.frame
+            captureSession.startRunning()
+            
+            let dataOutput = AVCaptureVideoDataOutput()
+            dataOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString):NSNumber(value:kCVPixelFormatType_32BGRA)]
+            
+            dataOutput.alwaysDiscardsLateVideoFrames = true
+            
+            if captureSession.canAddOutput(dataOutput) {
+                captureSession.addOutput(dataOutput)
+            }
+            
+            captureSession.commitConfiguration()
             
             
-        } catch {
-            print(error)
+            let queue = DispatchQueue(label: "com.brianadvent.captureQueue")
+            dataOutput.setSampleBufferDelegate(self, queue: queue)
         }
+        
     }
     
-    func setupPreviewLayer() {
-        self.cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        self.cameraPreviewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        self.cameraPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-        self.cameraPreviewLayer?.frame = view.frame
+    @IBAction func takePhoto(_ sender: Any) {
+        takePhoto = true
         
-        self.view.layer.insertSublayer(self.cameraPreviewLayer!, at: 0)
     }
     
-    
-    @objc func switchCamera() {
-        captureSession.beginConfiguration()
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         
-        // Change the device based on the current camera
-        let newDevice = (currentDevice?.position == AVCaptureDevice.Position.back) ? frontCamera : backCamera
-        
-        // Remove all inputs from the session
-        for input in captureSession.inputs {
-            captureSession.removeInput(input as! AVCaptureDeviceInput)
-        }
-        
-        // Change to the new input
-        let cameraInput:AVCaptureDeviceInput
-        do {
-            cameraInput = try AVCaptureDeviceInput(device: newDevice!)
-        } catch {
-            print(error)
-            return
-        }
-        
-        if captureSession.canAddInput(cameraInput) {
-            captureSession.addInput(cameraInput)
-        }
-        
-        currentDevice = newDevice
-        captureSession.commitConfiguration()
-    }
-    
-    @objc func zoomIn() {
-        if let zoomFactor = currentDevice?.videoZoomFactor {
-            if zoomFactor < 5.0 {
-                let newZoomFactor = min(zoomFactor + 1.0, 5.0)
-                do {
-                    try currentDevice?.lockForConfiguration()
-                    currentDevice?.ramp(toVideoZoomFactor: newZoomFactor, withRate: 1.0)
-                    currentDevice?.unlockForConfiguration()
-                } catch {
-                    print(error)
+        if takePhoto {
+            takePhoto = false
+            
+            if let image = self.getImageFromSampleBuffer(buffer: sampleBuffer) {
+                
+                let photoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoVC") as! PhotoViewController
+                
+                photoVC.takenPhoto = image
+                MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                    print(result ?? error ?? "")
+                    
+                }
+                DispatchQueue.main.async {
+                    self.present(photoVC, animated: true, completion: { 
+                        self.stopCaptureSession()
+                    })
+                    
                 }
             }
+            
+        
         }
     }
     
-    @objc func zoomOut() {
-        if let zoomFactor = currentDevice?.videoZoomFactor {
-            if zoomFactor > 1.0 {
-                let newZoomFactor = max(zoomFactor - 1.0, 1.0)
-                do {
-                    try currentDevice?.lockForConfiguration()
-                    currentDevice?.ramp(toVideoZoomFactor: newZoomFactor, withRate: 1.0)
-                    currentDevice?.unlockForConfiguration()
-                } catch {
-                    print(error)
-                }
+    
+    func getImageFromSampleBuffer (buffer:CMSampleBuffer) -> UIImage? {
+        if let pixelBuffer = CMSampleBufferGetImageBuffer(buffer) {
+            let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+            let context = CIContext()
+            
+            let imageRect = CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
+            
+            if let image = context.createCGImage(ciImage, from: imageRect) {
+                return UIImage(cgImage: image, scale: UIScreen.main.scale, orientation: .right)
+            }
+            
+        }
+        
+        return nil
+    }
+    
+    func stopCaptureSession () {
+        self.captureSession.stopRunning()
+        
+        if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
+            for input in inputs {
+                self.captureSession.removeInput(input)
             }
         }
-    }
-    
-    @IBAction func cameraButton_TouchUpInside(_ sender: Any) {
-        let settings = AVCapturePhotoSettings()
-        self.photoOutput?.capturePhoto(with: settings, delegate: self)
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "Preview_Segue" {
-            let previewViewController = segue.destination as! PreviewViewController
-            previewViewController.image = self.image
-        }
+        
     }
     
     func recognizeMathOperation(for image :UIImage){
@@ -192,14 +151,9 @@ class ViewController: UIViewController {
         UIGraphicsEndImageContext()
         return newImage
     }
-}
+    
+    
 
-extension ViewController: AVCapturePhotoCaptureDelegate {
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        if let imageData = photo.fileDataRepresentation() {
-            self.image = UIImage(data: imageData)
-            performSegue(withIdentifier: "Preview_Segue", sender: nil)
-        }
-    }
+
 }
 

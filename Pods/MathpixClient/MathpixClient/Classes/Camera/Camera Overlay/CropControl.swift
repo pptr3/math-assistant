@@ -7,7 +7,6 @@
 //
 import PureLayout
 import Foundation
-//import MathpixClient
 
 class CropControl: UIView {
     var widthConstraint: NSLayoutConstraint?
@@ -38,13 +37,6 @@ class CropControl: UIView {
         setupSizeConstraints()
     }
     
-    func recognizeMathOperation(for image :UIImage) {
-        MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            // print(result ?? error ?? "")
-            // print(result.debugDescription)
-        }
-    }
-    
     func setupView(){
         backgroundColor = UIColor.clear
         layer.borderColor = color.cgColor
@@ -69,9 +61,9 @@ class CropControl: UIView {
     
     func setupSizeConstraints() {
         widthConstraint = autoSetDimension(.width, toSize: defaultCropSize.width)
-        widthConstraint?.priority = UILayoutPriority.defaultHigh
+        widthConstraint?.priority = UILayoutPriorityDefaultHigh
         heightConstraint = autoSetDimension(.height, toSize: defaultCropSize.height)
-        heightConstraint?.priority = UILayoutPriority.defaultHigh
+        heightConstraint?.priority = UILayoutPriorityDefaultHigh
 
     }
     
@@ -136,7 +128,7 @@ class CropControl: UIView {
         corner.addGestureRecognizer(rec)
     }
 
-    @objc func cornerMoved(_ gestureRecogniser: UIPanGestureRecognizer){
+    func cornerMoved(_ gestureRecogniser: UIPanGestureRecognizer){
         if let corner = gestureRecogniser.view as? CropControlCorner {
             let viewCenter = CGPoint(x: frame.width/2, y: frame.height/2)
             let touchCenter = gestureRecogniser.location(in: self)

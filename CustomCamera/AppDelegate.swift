@@ -1,3 +1,11 @@
+//
+//  AppDelegate.swift
+//  CustomCamera
+//
+//  Created by Brian Advent on 24/01/2017.
+//  Copyright © 2017 Brian Advent. All rights reserved.
+//
+
 import UIKit
 import MathpixClient
 
