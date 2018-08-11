@@ -40,11 +40,13 @@ public struct Pixel {
     }
 }
 
-public struct RGBAImage {
+public struct RGBAImage: UIViewController {
     public var pixels: UnsafeMutableBufferPointer<Pixel>
     public var width: Int
     public var height: Int
-    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
     public init?(image: UIImage) {
         guard let cgImage = image.cgImage else {
             return nil
