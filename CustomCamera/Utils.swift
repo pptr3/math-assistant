@@ -1,18 +1,8 @@
-//
-//  Utils.swift
-//  CustomCamera
-//
-//  Created by Valerio Potrimba on 11/08/2018.
-//  Copyright © 2018 Zero2Launch. All rights reserved.
-//
-
 import Foundation
 import MathpixClient
 import UIKit
-import MathpixClient
 import AVFoundation
-import CoreML
-import Vision
+
 
 class Utils {
     
