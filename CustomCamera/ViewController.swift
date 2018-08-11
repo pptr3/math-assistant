@@ -6,9 +6,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     let captureSession = AVCaptureSession()
     var previewLayer:CALayer!
-    
     var captureDevice:AVCaptureDevice!
-    
     var takePhoto = false
     
     override func viewDidLoad() {
@@ -19,79 +17,58 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         super.viewWillAppear(animated)
         prepareCamera()
     }
-    
-    
+
     func prepareCamera() {
         captureSession.sessionPreset = AVCaptureSessionPresetPhoto
-        
         if let availableDevices = AVCaptureDeviceDiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: AVMediaTypeVideo, position: .back).devices {
             captureDevice = availableDevices.first
             beginSession()
         }
-        
     }
     
     func beginSession () {
         do {
             let captureDeviceInput = try AVCaptureDeviceInput(device: captureDevice)
-            
             captureSession.addInput(captureDeviceInput)
-            
-        }catch {
+        } catch {
             print(error.localizedDescription)
         }
-        
         
         if let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession) {
             self.previewLayer = previewLayer
             self.view.layer.addSublayer(self.previewLayer)
             self.previewLayer.frame = self.view.layer.frame
             captureSession.startRunning()
-            
             let dataOutput = AVCaptureVideoDataOutput()
             dataOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString):NSNumber(value:kCVPixelFormatType_32BGRA)]
-            
             dataOutput.alwaysDiscardsLateVideoFrames = true
-            
             if captureSession.canAddOutput(dataOutput) {
                 captureSession.addOutput(dataOutput)
             }
-            
             captureSession.commitConfiguration()
-            
-            
             let queue = DispatchQueue(label: "com.brianadvent.captureQueue")
             dataOutput.setSampleBufferDelegate(self, queue: queue)
         }
-        
     }
     
     @IBAction func takePhoto(_ sender: Any) {
         takePhoto = true
-        
     }
     
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        
         if takePhoto {
             takePhoto = false
-            
             if let image = self.getImageFromSampleBuffer(buffer: sampleBuffer) {
-                
                 let photoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoVC") as! PhotoViewController
-                
                 photoVC.takenPhoto = image
-                photoVC.takenPhoto = self.textToImage(drawText: "DebugMe", inImage: photoVC.takenPhoto!, atPoint: CGPoint(x: 100, y: 200))
+               // photoVC.takenPhoto = self.textToImage(drawText: "DebugMe", inImage: photoVC.takenPhoto!, atPoint: CGPoint(x: 100, y: 200))
                 DispatchQueue.main.async {
                     self.recognizeMathOperation(for: image)
                     self.present(photoVC, animated: true, completion: { 
                         self.stopCaptureSession()
                     })
-                    
                 }
             }
-            
-        
         }
     }
     
@@ -100,21 +77,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         if let pixelBuffer = CMSampleBufferGetImageBuffer(buffer) {
             let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
             let context = CIContext()
-            
             let imageRect = CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
-            
             if let image = context.createCGImage(ciImage, from: imageRect) {
                 return UIImage(cgImage: image, scale: UIScreen.main.scale, orientation: .right)
             }
-            
         }
-        
         return nil
     }
     
     func stopCaptureSession () {
         self.captureSession.stopRunning()
-        
         if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
             for input in inputs {
                 self.captureSession.removeInput(input)
@@ -123,7 +95,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     func recognizeMathOperation(for image :UIImage){
-        MathpixClient.recognize(image: imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+        MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
             print(result.debugDescription)
         }
     }
@@ -152,25 +124,18 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     func textToImage(drawText text: NSString, inImage image: UIImage, atPoint point: CGPoint) -> UIImage {
         let textColor = UIColor.blue
         let textFont = UIFont(name: "Helvetica Bold", size: 50)!
-        
         let scale = UIScreen.main.scale
         UIGraphicsBeginImageContextWithOptions(image.size, false, scale)
-        
         let textFontAttributes = [
             NSFontAttributeName: textFont,
             NSForegroundColorAttributeName: textColor,
             ] as [String : Any]
         image.draw(in: CGRect(origin: CGPoint.zero, size: image.size))
-        
         let rect = CGRect(origin: point, size: image.size)
         text.draw(in: rect, withAttributes: textFontAttributes)
-        
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        
         return newImage!
     }
-
-
 }
 
