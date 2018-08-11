@@ -3,7 +3,6 @@ import MathpixClient
 import UIKit
 import AVFoundation
 
-
 class Utils {
     
     func recognizeMathOperation(for image :UIImage) {

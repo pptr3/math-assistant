@@ -3,9 +3,7 @@ import AVFoundation
 class ViewController: UIViewController {
 
     @IBOutlet weak var cameraButton: UIButton!
-    var utils : Utils
     var captureSession = AVCaptureSession()
-    
     var backCamera: AVCaptureDevice?
     var frontCamera: AVCaptureDevice?
     var currentDevice: AVCaptureDevice?
