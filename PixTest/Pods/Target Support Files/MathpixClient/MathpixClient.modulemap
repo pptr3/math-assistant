@@ -1,6 +1,0 @@
-framework module MathpixClient {
-  umbrella header "MathpixClient-umbrella.h"
-
-  export *
-  module * { export * }
-}
