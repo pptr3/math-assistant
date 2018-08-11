@@ -7,7 +7,7 @@ class ViewController: UIViewController {
     var backCamera: AVCaptureDevice?
     var frontCamera: AVCaptureDevice?
     var currentDevice: AVCaptureDevice?
-    
+   
     var photoOutput: AVCapturePhotoOutput?
     
     var cameraPreviewLayer:AVCaptureVideoPreviewLayer?
