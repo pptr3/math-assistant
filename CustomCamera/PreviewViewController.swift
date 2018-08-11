@@ -5,16 +5,18 @@ class PreviewViewController: UIViewController {
 
     @IBOutlet weak var photo: UIImageView!
     
+    @IBOutlet weak var test: UIImageView!
     var image:UIImage?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        photo.image = image
-        // Do any additional setup after loading the view.
+      //  self.recognizeMathOperation(for: self.imageRotatedByDegrees(oldImage: self.image!, deg: CGFloat(90.0)))
+        self.photo.image = self.textToImage(drawText: "CIAO", inImage: self.image!, atPoint: CGPoint(x: 1209, y: 1512))
+        
     }
 
     @IBAction func saveBtn_TouchUpInside(_ sender: Any) {
-        guard let imageToSave = image else {
+        guard let imageToSave = self.photo.image else {
             return
         }
         
@@ -29,10 +31,9 @@ class PreviewViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func recognizeMathOperation(for image :UIImage) {
+    func recognizeMathOperation(for image :UIImage){
         MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            // print(result ?? error ?? "")
-            // print(result.debugDescription)
+            print(result.debugDescription)
         }
     }
     
@@ -57,4 +58,26 @@ class PreviewViewController: UIViewController {
         
         return newImage!
     }
+    
+    func imageRotatedByDegrees(oldImage: UIImage, deg degrees: CGFloat) -> UIImage {
+        //Calculate the size of the rotated view's containing box for our drawing space
+        let rotatedViewBox: UIView = UIView(frame: CGRect(x: 0, y: 0, width: oldImage.size.width, height: oldImage.size.height))
+        let t: CGAffineTransform = CGAffineTransform(rotationAngle: degrees * CGFloat.pi / 180)
+        rotatedViewBox.transform = t
+        let rotatedSize: CGSize = rotatedViewBox.frame.size
+        //Create the bitmap context
+        UIGraphicsBeginImageContext(rotatedSize)
+        let bitmap: CGContext = UIGraphicsGetCurrentContext()!
+        //Move the origin to the middle of the image so we will rotate and scale around the center.
+        bitmap.translateBy(x: rotatedSize.width / 2, y: rotatedSize.height / 2)
+        //Rotate the image context
+        bitmap.rotate(by: (degrees * CGFloat.pi / 180))
+        //Now, draw the rotated/scaled image into the context
+        bitmap.scaleBy(x: 1.0, y: -1.0)
+        bitmap.draw(oldImage.cgImage!, in: CGRect(x: -oldImage.size.width / 2, y: -oldImage.size.height / 2, width: oldImage.size.width, height: oldImage.size.height))
+        let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return newImage
+    }
+    
 }
