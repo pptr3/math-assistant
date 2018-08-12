@@ -20,11 +20,12 @@ class PhotoViewController: UIViewController {
 
         if let availableImage = self.takenPhoto {
             MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  availableImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                // print(result.debugDescription)
                 let chars = Array(result.debugDescription)
-                let coordinates = self.getTopLeftX(from: chars)
-                
-                self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates![0], y: coordinates![1]))
+                if let coordinates = self.getCoordinates(from: chars) {
+                    self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+                } else {
+                    self.dismiss(animated: true, completion: nil)
+                }
             }
         }
     }
@@ -52,7 +53,7 @@ class PhotoViewController: UIViewController {
         }
     }*/
     
-    func getTopLeftX(from chars: [Character]) -> Array<Int>? {
+    func getCoordinates(from chars: [Character]) -> Array<Int>? {
         var coordinates: Array<Int> = []
         let topLeftX = Array("top_left_")
         var topIndex = 0
@@ -70,7 +71,6 @@ class PhotoViewController: UIViewController {
                 }
                 topIndex = 0
                 if count == topLeftX.count {
-                    //print("elemX: \(self.getNumber(from: chars, from: index2+5))")
                     if let coordinate = self.getNumber(from: chars, from: index2+5) { //"+5" is where the number starts
                         coordinates.append(coordinate)
                     }
@@ -82,10 +82,10 @@ class PhotoViewController: UIViewController {
                 count = 0
             }
         }
-        return []
+        return nil
     }
     
-    func getNumber(from chars: [Character], from index: Int ) -> Int? {
+    private func getNumber(from chars: [Character], from index: Int ) -> Int? {
         var myStringNumber = ""
         var i = index
         for _ in chars.indices {
