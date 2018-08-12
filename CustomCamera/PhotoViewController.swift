@@ -19,7 +19,13 @@ class PhotoViewController: UIViewController {
         super.viewDidLoad()
 
         if let availableImage = self.takenPhoto {
-            self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: 650, y: 325))
+            MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  availableImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                // print(result.debugDescription)
+                let chars = Array(result.debugDescription)
+                let coordinates = self.getTopLeftX(from: chars)
+                
+                self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates![0], y: coordinates![1]))
+            }
         }
     }
     
@@ -34,8 +40,64 @@ class PhotoViewController: UIViewController {
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
-
-   
+/*Used directly in viewDidLoad()
+    func recognizeMathOperation(for image :UIImage){
+        MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+            // print(result.debugDescription)
+            let chars = Array(result.debugDescription)
+            let coordinates = self.getTopLeftX(from: chars)
+            
+            //  self.textToImage(drawText: "CIAO", inImage: image, atPoint: CGPoint(x: coordinates![0], y: coordinates![1]))
+            //image = self.textToImage(drawText: "ciaooooo", inImage: image, atPoint: CGPoint(x: 10, y: 10))
+        }
+    }*/
+    
+    func getTopLeftX(from chars: [Character]) -> Array<Int>? {
+        var coordinates: Array<Int> = []
+        let topLeftX = Array("top_left_")
+        var topIndex = 0
+        var count = 0
+        var found = 0
+        for index in chars.indices {
+            if chars[index] == topLeftX[topIndex] {
+                var index2 = index
+                for _ in topLeftX.indices {
+                    if chars[index2] == topLeftX[topIndex] {
+                        count += 1
+                        index2 += 1
+                        topIndex += 1
+                    }
+                }
+                topIndex = 0
+                if count == topLeftX.count {
+                    //print("elemX: \(self.getNumber(from: chars, from: index2+5))")
+                    if let coordinate = self.getNumber(from: chars, from: index2+5) { //"+5" is where the number starts
+                        coordinates.append(coordinate)
+                    }
+                    found += 1
+                    if found == 2 {
+                        return coordinates
+                    }
+                }
+                count = 0
+            }
+        }
+        return []
+    }
+    
+    func getNumber(from chars: [Character], from index: Int ) -> Int? {
+        var myStringNumber = ""
+        var i = index
+        for _ in chars.indices {
+            if chars[i] != ";" {
+                myStringNumber.append(chars[i])
+                i += 1
+            } else {
+                break
+            }
+        }
+        return Int(myStringNumber) ?? nil
+    }
     
     func imageRotatedByDegrees(oldImage: UIImage, deg degrees: CGFloat) -> UIImage {
         //Calculate the size of the rotated view's containing box for our drawing space
