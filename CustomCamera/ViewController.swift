@@ -96,8 +96,53 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     func recognizeMathOperation(for image :UIImage){
         MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            print(result.debugDescription)
+           // print(result.debugDescription)
+            let chars = Array(result.debugDescription)
+            self.getTopLeftX(from: chars)
+            
         }
+    }
+    
+    func getTopLeftX(from chars: [Character]) {
+        let topLeftX = Array("top_left_")
+        var topIndex = 0
+        var count = 0
+        var found = 0
+        for index in chars.indices {
+            if chars[index] == topLeftX[topIndex] {
+                var index2 = index
+                for _ in topLeftX.indices {
+                    if chars[index2] == topLeftX[topIndex] {
+                        count += 1
+                        index2 += 1
+                        topIndex += 1
+                    }
+                }
+                topIndex = 0
+                if count == topLeftX.count {
+                    print("elemX: \(self.getNumber(from: chars, from: index2+5))")
+                    found += 1
+                    if found == 2 {
+                        break
+                    }
+                }
+                count = 0
+            }
+        }
+    }
+    
+    func getNumber(from chars: [Character], from index: Int ) -> Int? {
+        var myStringNumber = ""
+        var i = index
+        for _ in chars.indices {
+            if chars[i] != ";" {
+                myStringNumber.append(chars[i])
+                i += 1
+            } else {
+                break
+            }
+        }
+        return Int(myStringNumber) ?? nil
     }
     
     func imageRotatedByDegrees(oldImage: UIImage, deg degrees: CGFloat) -> UIImage {
@@ -138,4 +183,3 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         return newImage!
     }
 }
-
