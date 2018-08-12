@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MathpixClient
 
 class ViewController: UIViewController, CACameraSessionDelegate {
 
@@ -37,11 +38,13 @@ class ViewController: UIViewController, CACameraSessionDelegate {
    
     func didCapture(_ image: UIImage!) {
         if let cameraView = self.cameraView {
-            print("captured")
-            self.capturedImage.image = image
             
+            self.capturedImage.image = image
+            MathpixClient.recognize(image: image, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                print(result.debugDescription)
+            }
         }
-        print("capt")
+        
     }
 
 
