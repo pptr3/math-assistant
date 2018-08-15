@@ -19,48 +19,43 @@ class PhotoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         if let availableImage = self.takenPhoto {
-            MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  availableImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                let chars = Array(result.debugDescription)
-                if let coordinates = self.getCoordinates(from: chars) {
-                    //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
-                   // let toonFilter = CannyEdgeDetection()
-                    //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
-                   // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
-                } else {
-                    self.dismiss(animated: true, completion: nil)
-                }
-            }
+            self.picture = PictureInput(image: availableImage)
+            self.filter = CannyEdgeDetection()
+            self.picture --> self.filter --> self.imageView
+            self.picture.processImage()
+            
+            let toonFilter = CannyEdgeDetection()
+            self.takenPhoto = availableImage.filterWithOperation(toonFilter)
         
-        self.picture = PictureInput(image: availableImage)
-        self.filter = CannyEdgeDetection()
-        self.picture --> self.filter --> self.imageView
-        self.picture.processImage()
         }
-        
     }
     
     
     @IBAction func savePhoto(_ sender: Any) {
-        /*guard let imageToSave = self.takenPhoto else {
+        guard let imageToSave = self.takenPhoto else {
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        dismiss(animated: true, completion: nil)*/
+        dismiss(animated: true, completion: nil)
     }
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
-/*Used directly in viewDidLoad()
+/*
     func recognizeMathOperation(for image :UIImage){
         MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            // print(result.debugDescription)
             let chars = Array(result.debugDescription)
-            let coordinates = self.getTopLeftX(from: chars)
-            
-            //  self.textToImage(drawText: "CIAO", inImage: image, atPoint: CGPoint(x: coordinates![0], y: coordinates![1]))
-            //image = self.textToImage(drawText: "ciaooooo", inImage: image, atPoint: CGPoint(x: 10, y: 10))
+            if let coordinates = self.getCoordinates(from: chars) {
+                //here is commented beacause self.imageView as been converted into RenderView for testing Canny edge detection
+                //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+                // let toonFilter = CannyEdgeDetection()
+                //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
+                // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
+            } else {
+                self.dismiss(animated: true, completion: nil)
+            }
+
         }
     }*/
     
@@ -164,7 +159,7 @@ public class CannyEdgeDetection: OperationGroup {
         super.init()
         
         ({blurRadiusInPixels = 2.0})()
-        ({upperThreshold = 0.4})()
+        ({upperThreshold = 0.3})()
         ({lowerThreshold = 0.1})()
         
         self.configureGroup{input, output in
