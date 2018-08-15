@@ -8,12 +8,14 @@
 
 import UIKit
 import MathpixClient
+import GPUImage
 
 class PhotoViewController: UIViewController {
 
+    @IBOutlet weak var imageView: RenderView!
     var takenPhoto:UIImage?
-    
-    @IBOutlet weak var imageView: UIImageView!
+    var filter:CannyEdgeDetection!
+    var picture:PictureInput!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,21 +24,30 @@ class PhotoViewController: UIViewController {
             MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  availableImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
                 let chars = Array(result.debugDescription)
                 if let coordinates = self.getCoordinates(from: chars) {
-                    self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+                    //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+                   // let toonFilter = CannyEdgeDetection()
+                    //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
+                   // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
                 } else {
                     self.dismiss(animated: true, completion: nil)
                 }
             }
+        
+        self.picture = PictureInput(image: availableImage)
+        self.filter = CannyEdgeDetection()
+        self.picture --> self.filter --> self.imageView
+        self.picture.processImage()
         }
+        
     }
     
     
     @IBAction func savePhoto(_ sender: Any) {
-        guard let imageToSave = self.takenPhoto else {
+        /*guard let imageToSave = self.takenPhoto else {
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)*/
     }
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
@@ -135,5 +146,29 @@ class PhotoViewController: UIViewController {
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return newImage!
+    }
+}
+
+public class CannyEdgeDetection: OperationGroup {
+    public var blurRadiusInPixels:Float = 2.0 { didSet { gaussianBlur.blurRadiusInPixels = blurRadiusInPixels } }
+    public var upperThreshold:Float = 0.4 { didSet { directionalNonMaximumSuppression.uniformSettings["upperThreshold"] = upperThreshold } }
+    public var lowerThreshold:Float = 0.1 { didSet { directionalNonMaximumSuppression.uniformSettings["lowerThreshold"] = lowerThreshold } }
+    
+    let luminance = Luminance()
+    let gaussianBlur = SingleComponentGaussianBlur()
+    let directionalSobel = TextureSamplingOperation(fragmentShader:DirectionalSobelEdgeDetectionFragmentShader)
+    let directionalNonMaximumSuppression = TextureSamplingOperation(vertexShader:OneInputVertexShader, fragmentShader:DirectionalNonMaximumSuppressionFragmentShader)
+    let weakPixelInclusion = TextureSamplingOperation(fragmentShader:WeakPixelInclusionFragmentShader)
+    
+    public override init() {
+        super.init()
+        
+        ({blurRadiusInPixels = 2.0})()
+        ({upperThreshold = 0.4})()
+        ({lowerThreshold = 0.1})()
+        
+        self.configureGroup{input, output in
+            input --> self.luminance --> self.gaussianBlur --> self.directionalSobel --> self.directionalNonMaximumSuppression --> self.weakPixelInclusion --> output
+        }
     }
 }

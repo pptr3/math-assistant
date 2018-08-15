@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4C208A54262F375EDB276025D31262A5"
+               BlueprintIdentifier = "56C678F2F3226B6F5F6F59FE9F981D43"
                BuildableName = "Pods_CustomCamera.framework"
                BlueprintName = "Pods-CustomCamera"
                ReferencedContainer = "container:Pods.xcodeproj">
@@ -45,7 +45,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4C208A54262F375EDB276025D31262A5"
+            BlueprintIdentifier = "56C678F2F3226B6F5F6F59FE9F981D43"
             BuildableName = "Pods_CustomCamera.framework"
             BlueprintName = "Pods-CustomCamera"
             ReferencedContainer = "container:Pods.xcodeproj">

@@ -3,7 +3,7 @@ import AVFoundation
 import MathpixClient
 
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
-
+    
     let captureSession = AVCaptureSession()
     var previewLayer:CALayer!
     var captureDevice:AVCaptureDevice!

@@ -54,7 +54,7 @@
                                     <action selector="goBack:" destination="Igs-uC-hbY" eventType="touchUpInside" id="Z9i-iQ-lhB"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zgr-cf-bGh">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zgr-cf-bGh" customClass="RenderView" customModule="GPUImage">
                                 <rect key="frame" x="0.0" y="58" width="375" height="609"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             </imageView>
@@ -80,7 +80,6 @@
         <!--Navigation Controller-->
         <scene sceneID="1bI-Yg-Tmb">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="aVC-mF-Q94" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="dYE-RA-WeO" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="K03-S0-sdl">
@@ -92,6 +91,7 @@
                         <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="jiY-gA-iZI"/>
                     </connections>
                 </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="aVC-mF-Q94" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="84" y="187.55622188905548"/>
         </scene>

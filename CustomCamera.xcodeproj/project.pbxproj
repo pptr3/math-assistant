@@ -16,7 +16,46 @@
 		9E18F99A1E37658A00EBA699 /* PhotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E18F9991E37658A00EBA699 /* PhotoViewController.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		2FDEA4B921241E8700D7F7C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BC6E7CAB1C39A9D8006DF678;
+			remoteInfo = GPUImage_macOS;
+		};
+		2FDEA4BB21241E8700D7F7C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BC6E7CB51C39A9D8006DF678;
+			remoteInfo = GPUImageTests_macOS;
+		};
+		2FDEA4BD21241E8700D7F7C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BC9E34E91E524A2200B8604F;
+			remoteInfo = GPUImage_iOS;
+		};
+		2FDEA4BF21241E8700D7F7C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BC9E34F11E524A2200B8604F;
+			remoteInfo = GPUImageTests_iOS;
+		};
+		2FDEA4C121241EAD00D7F7C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BC9E34E81E524A2200B8604F;
+			remoteInfo = GPUImage_iOS;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GPUImage.xcodeproj; path = ../GPUImage2/framework/GPUImage.xcodeproj; sourceTree = "<group>"; };
 		6871BFABA22D30D7234803F1 /* Pods-CustomCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomCamera.release.xcconfig"; path = "Pods/Target Support Files/Pods-CustomCamera/Pods-CustomCamera.release.xcconfig"; sourceTree = "<group>"; };
 		9E18F9841E3764F200EBA699 /* CustomCamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E18F9871E3764F200EBA699 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -42,6 +81,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2FDEA4B321241E8700D7F7C2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2FDEA4BA21241E8700D7F7C2 /* GPUImage.framework */,
+				2FDEA4BC21241E8700D7F7C2 /* GPUImageTests_macOS.xctest */,
+				2FDEA4BE21241E8700D7F7C2 /* GPUImage.framework */,
+				2FDEA4C021241E8700D7F7C2 /* GPUImageTests_iOS.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		7E842D401AF7BFF99388B6E3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -53,6 +103,7 @@
 		9E18F97B1E3764F200EBA699 = {
 			isa = PBXGroup;
 			children = (
+				2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */,
 				9E18F9861E3764F200EBA699 /* CustomCamera */,
 				9E18F9851E3764F200EBA699 /* Products */,
 				C66E2ABE3BB80782641AAAEF /* Pods */,
@@ -107,6 +158,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2FDEA4C221241EAD00D7F7C2 /* PBXTargetDependency */,
 			);
 			name = CustomCamera;
 			productName = CustomCamera;
@@ -141,12 +193,49 @@
 			mainGroup = 9E18F97B1E3764F200EBA699;
 			productRefGroup = 9E18F9851E3764F200EBA699 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 2FDEA4B321241E8700D7F7C2 /* Products */;
+					ProjectRef = 2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				9E18F9831E3764F200EBA699 /* CustomCamera */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		2FDEA4BA21241E8700D7F7C2 /* GPUImage.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GPUImage.framework;
+			remoteRef = 2FDEA4B921241E8700D7F7C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2FDEA4BC21241E8700D7F7C2 /* GPUImageTests_macOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GPUImageTests_macOS.xctest;
+			remoteRef = 2FDEA4BB21241E8700D7F7C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2FDEA4BE21241E8700D7F7C2 /* GPUImage.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GPUImage.framework;
+			remoteRef = 2FDEA4BD21241E8700D7F7C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2FDEA4C021241E8700D7F7C2 /* GPUImageTests_iOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GPUImageTests_iOS.xctest;
+			remoteRef = 2FDEA4BF21241E8700D7F7C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9E18F9821E3764F200EBA699 /* Resources */ = {
@@ -187,11 +276,13 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-CustomCamera/Pods-CustomCamera-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/GPUImage/GPUImage.framework",
 				"${BUILT_PRODUCTS_DIR}/MathpixClient/MathpixClient.framework",
 				"${BUILT_PRODUCTS_DIR}/PureLayout/PureLayout.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GPUImage.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MathpixClient.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PureLayout.framework",
 			);
@@ -214,6 +305,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2FDEA4C221241EAD00D7F7C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GPUImage_iOS;
+			targetProxy = 2FDEA4C121241EAD00D7F7C2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		9E18F98B1E3764F200EBA699 /* Main.storyboard */ = {

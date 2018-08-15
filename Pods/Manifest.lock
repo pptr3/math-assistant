@@ -1,20 +1,24 @@
 PODS:
+  - GPUImage (0.1.7)
   - MathpixClient (0.1.3):
     - PureLayout
   - PureLayout (3.0.2)
 
 DEPENDENCIES:
+  - GPUImage (~> 0.1)
   - MathpixClient
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
+    - GPUImage
     - MathpixClient
     - PureLayout
 
 SPEC CHECKSUMS:
+  GPUImage: 733a5f0fab92df9de1c37ba9df520a833ccb406d
   MathpixClient: 6cdef04ac1f77baadc824fc045d33e2bd5627475
   PureLayout: 4d550abe49a94f24c2808b9b95db9131685fe4cd
 
-PODFILE CHECKSUM: 356e9e74c1dbae583ef16d7dc06c0f805439acd1
+PODFILE CHECKSUM: bb99a53ca4370186b8c89929a45bdbdd0c350825
 
 COCOAPODS: 1.5.3

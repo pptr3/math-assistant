@@ -7,4 +7,5 @@ target 'CustomCamera' do
 
   # Pods for CustomCamera
   pod "MathpixClient"
+  pod 'GPUImage', '~> 0.1'
 end

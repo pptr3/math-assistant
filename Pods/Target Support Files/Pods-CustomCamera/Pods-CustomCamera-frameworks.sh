@@ -143,10 +143,12 @@ strip_invalid_archs() {
 
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/GPUImage/GPUImage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/MathpixClient/MathpixClient.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/PureLayout/PureLayout.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/GPUImage/GPUImage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/MathpixClient/MathpixClient.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/PureLayout/PureLayout.framework"
 fi
