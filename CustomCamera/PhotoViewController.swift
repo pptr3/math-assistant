@@ -21,20 +21,40 @@ class PhotoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
+            //display taken image just for debug
             self.imageView.image = availableImage
-            var imageToProcess = availableImage
-            self.canny = CannyEdgeDetection()
-            imageToProcess = availableImage.filterWithOperation(self.canny)
-            self.dilation = Dilation()
-            imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-            self.takenPhoto = imageToProcess
+            if let filteredImage = self.filterImage(availableImage) {
+                self.segmentMathOperations(for: filteredImage)
+                self.correctOperations()
+                self.displayResult()
+            }
+            
         }
     }
     
+    func filterImage(_ image: UIImage) -> UIImage? {
+        var imageToProcess = image
+        self.canny = CannyEdgeDetection()
+        imageToProcess = image.filterWithOperation(self.canny)
+        self.dilation = Dilation()
+        imageToProcess = imageToProcess.filterWithOperation(self.dilation)
+        return imageToProcess
+    }
+    // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
+    func segmentMathOperations(for image: UIImage) {
+        
+    }
+    // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
+    func correctOperations() {
+        
+    }
+    // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
+    func displayResult() -> UIImage? {
+        return nil
+    }
     
     @IBAction func savePhoto(_ sender: Any) {
         guard let imageToSave = self.takenPhoto else {
-            
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
