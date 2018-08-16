@@ -13,21 +13,22 @@ import GPUImage
 class PhotoViewController: UIViewController {
 
     @IBOutlet weak var imageView: RenderView!
-    var takenPhoto:UIImage?
-    var filter:CannyEdgeDetection!
-    var picture:PictureInput!
+    var takenPhoto: UIImage?
+    var cannyFilter: CannyEdgeDetection!
+    var dilationFilter: Dilation!
+    var picture: PictureInput!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
             self.picture = PictureInput(image: availableImage)
-            self.filter = CannyEdgeDetection()
-            self.picture --> self.filter --> self.imageView
+            self.cannyFilter = CannyEdgeDetection()
+            self.dilationFilter = Dilation()
+            self.picture --> self.cannyFilter --> self.dilationFilter --> self.imageView
             self.picture.processImage()
             
             let toonFilter = CannyEdgeDetection()
             self.takenPhoto = availableImage.filterWithOperation(toonFilter)
-        
         }
     }
     
@@ -147,7 +148,7 @@ class PhotoViewController: UIViewController {
 public class CannyEdgeDetection: OperationGroup {
     public var blurRadiusInPixels:Float = 2.0 { didSet { gaussianBlur.blurRadiusInPixels = blurRadiusInPixels } }
     public var upperThreshold:Float = 0.4 { didSet { directionalNonMaximumSuppression.uniformSettings["upperThreshold"] = upperThreshold } }
-    public var lowerThreshold:Float = 0.1 { didSet { directionalNonMaximumSuppression.uniformSettings["lowerThreshold"] = lowerThreshold } }
+    public var lowerThreshold:Float = 0.2 { didSet { directionalNonMaximumSuppression.uniformSettings["lowerThreshold"] = lowerThreshold } }
     
     let luminance = Luminance()
     let gaussianBlur = SingleComponentGaussianBlur()
@@ -159,11 +160,12 @@ public class CannyEdgeDetection: OperationGroup {
         super.init()
         
         ({blurRadiusInPixels = 2.0})()
-        ({upperThreshold = 0.3})()
-        ({lowerThreshold = 0.1})()
+        ({upperThreshold = 0.4})()
+        ({lowerThreshold = 0.2})()
         
         self.configureGroup{input, output in
             input --> self.luminance --> self.gaussianBlur --> self.directionalSobel --> self.directionalNonMaximumSuppression --> self.weakPixelInclusion --> output
         }
     }
 }
+
