@@ -15,34 +15,19 @@ class PhotoViewController: UIViewController {
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var canny: CannyEdgeDetection!
-    var erosion: Erosion!
     var dilation: Dilation!
-    var closing: ClosingFilter!
-    var picture: PictureInput!
-    
+   
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-            if let availableImage = self.takenPhoto {
-                //self.picture = PictureInput(image: availableImage)
-                self.imageView.image = availableImage
-               /* self.canny = CannyEdgeDetection()
-                
-                self.erosion = Erosion()
-                self.dilation = Dilation()
-                self.picture --> self.canny --> self.dilation --> self.erosion --> self.imageView
-                self.picture.processImage()*/
-                var imageToProcess = availableImage
-                self.canny = CannyEdgeDetection()
-                imageToProcess = availableImage.filterWithOperation(self.canny)
-                
-              
-                
-                
-                self.takenPhoto = imageToProcess
-             
-                
-            
+        if let availableImage = self.takenPhoto {
+            self.imageView.image = availableImage
+            var imageToProcess = availableImage
+            self.canny = CannyEdgeDetection()
+            imageToProcess = availableImage.filterWithOperation(self.canny)
+            self.dilation = Dilation()
+            imageToProcess = imageToProcess.filterWithOperation(self.dilation)
+            self.takenPhoto = imageToProcess
         }
     }
     
