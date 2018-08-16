@@ -12,34 +12,50 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
-    @IBOutlet weak var imageView: RenderView!
+    @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
-    var cannyFilter: CannyEdgeDetection!
-    var dilationFilter: Dilation!
+    var canny: CannyEdgeDetection!
+    var erosion: Erosion!
+    var dilation: Dilation!
+    var closing: ClosingFilter!
     var picture: PictureInput!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let availableImage = self.takenPhoto {
-            self.picture = PictureInput(image: availableImage)
-            self.cannyFilter = CannyEdgeDetection()
-            self.dilationFilter = Dilation()
-            self.picture --> self.cannyFilter --> self.dilationFilter --> self.imageView
-            self.picture.processImage()
+        
+            if let availableImage = self.takenPhoto {
+                //self.picture = PictureInput(image: availableImage)
+                self.imageView.image = availableImage
+               /* self.canny = CannyEdgeDetection()
+                
+                self.erosion = Erosion()
+                self.dilation = Dilation()
+                self.picture --> self.canny --> self.dilation --> self.erosion --> self.imageView
+                self.picture.processImage()*/
+                var imageToProcess = availableImage
+                self.canny = CannyEdgeDetection()
+                imageToProcess = availableImage.filterWithOperation(self.canny)
+                
+              
+                
+                
+                self.takenPhoto = imageToProcess
+             
+                
             
-            let toonFilter = CannyEdgeDetection()
-            self.takenPhoto = availableImage.filterWithOperation(toonFilter)
         }
     }
     
     
     @IBAction func savePhoto(_ sender: Any) {
         guard let imageToSave = self.takenPhoto else {
+            
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
         dismiss(animated: true, completion: nil)
     }
+    
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
@@ -148,7 +164,7 @@ class PhotoViewController: UIViewController {
 public class CannyEdgeDetection: OperationGroup {
     public var blurRadiusInPixels:Float = 2.0 { didSet { gaussianBlur.blurRadiusInPixels = blurRadiusInPixels } }
     public var upperThreshold:Float = 0.4 { didSet { directionalNonMaximumSuppression.uniformSettings["upperThreshold"] = upperThreshold } }
-    public var lowerThreshold:Float = 0.2 { didSet { directionalNonMaximumSuppression.uniformSettings["lowerThreshold"] = lowerThreshold } }
+    public var lowerThreshold:Float = 0.1 { didSet { directionalNonMaximumSuppression.uniformSettings["lowerThreshold"] = lowerThreshold } }
     
     let luminance = Luminance()
     let gaussianBlur = SingleComponentGaussianBlur()
@@ -161,7 +177,7 @@ public class CannyEdgeDetection: OperationGroup {
         
         ({blurRadiusInPixels = 2.0})()
         ({upperThreshold = 0.4})()
-        ({lowerThreshold = 0.2})()
+        ({lowerThreshold = 0.1})()
         
         self.configureGroup{input, output in
             input --> self.luminance --> self.gaussianBlur --> self.directionalSobel --> self.directionalNonMaximumSuppression --> self.weakPixelInclusion --> output
