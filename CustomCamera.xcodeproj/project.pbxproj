@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		096F113B5C5395B681534FA5 /* Pods_CustomCamera.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1454C57E80F037AE87A9AF9 /* Pods_CustomCamera.framework */; };
+		2FCDAFDD2126E01000179C99 /* RGBAImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCDAFDC2126E01000179C99 /* RGBAImage.swift */; };
 		9E18F9881E3764F200EBA699 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E18F9871E3764F200EBA699 /* AppDelegate.swift */; };
 		9E18F98A1E3764F200EBA699 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E18F9891E3764F200EBA699 /* ViewController.swift */; };
 		9E18F98D1E3764F200EBA699 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9E18F98B1E3764F200EBA699 /* Main.storyboard */; };
@@ -55,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2FCDAFDC2126E01000179C99 /* RGBAImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RGBAImage.swift; sourceTree = "<group>"; };
 		2FDEA4B221241E8700D7F7C2 /* GPUImage.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GPUImage.xcodeproj; path = ../GPUImage2/framework/GPUImage.xcodeproj; sourceTree = "<group>"; };
 		6871BFABA22D30D7234803F1 /* Pods-CustomCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomCamera.release.xcconfig"; path = "Pods/Target Support Files/Pods-CustomCamera/Pods-CustomCamera.release.xcconfig"; sourceTree = "<group>"; };
 		9E18F9841E3764F200EBA699 /* CustomCamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +127,7 @@
 				9E18F9871E3764F200EBA699 /* AppDelegate.swift */,
 				9E18F9891E3764F200EBA699 /* ViewController.swift */,
 				9E18F9991E37658A00EBA699 /* PhotoViewController.swift */,
+				2FCDAFDC2126E01000179C99 /* RGBAImage.swift */,
 				9E18F98B1E3764F200EBA699 /* Main.storyboard */,
 				9E18F98E1E3764F200EBA699 /* Assets.xcassets */,
 				9E18F9901E3764F200EBA699 /* LaunchScreen.storyboard */,
@@ -299,6 +302,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9E18F98A1E3764F200EBA699 /* ViewController.swift in Sources */,
+				2FCDAFDD2126E01000179C99 /* RGBAImage.swift in Sources */,
 				9E18F9881E3764F200EBA699 /* AppDelegate.swift in Sources */,
 				9E18F99A1E37658A00EBA699 /* PhotoViewController.swift in Sources */,
 			);

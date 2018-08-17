@@ -21,12 +21,11 @@ class PhotoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
-            //display taken image just for debug
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                self.correctOperations()
-                self.displayResult()
+                //self.correctOperations()
+                //self.displayResult()
             }
             
         }
@@ -42,6 +41,26 @@ class PhotoViewController: UIViewController {
     }
     // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
     func segmentMathOperations(for image: UIImage) {
+        if let rgbCapturedImage = RGBAImage(image: image) {
+           
+            let y = 100
+            for x in 0..<100 {
+                
+                let index = y * rgbCapturedImage.width + x
+                var pixel = rgbCapturedImage.pixels[index]
+                
+                //here I'm setting one pixel of my rgb image to be red
+                pixel.red = 255
+                pixel.green = 0
+                pixel.blue = 0
+                rgbCapturedImage.pixels[index] = pixel
+            }
+            let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
+            //self.takenPhoto = newUIImageFromRGBAImage
+            let img =  self.imageRotatedByDegrees(oldImage: newUIImageFromRGBAImage!, deg: CGFloat(90.0))
+            UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+            dismiss(animated: true, completion: nil)
+        }
         
     }
     // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
@@ -57,7 +76,8 @@ class PhotoViewController: UIViewController {
         guard let imageToSave = self.takenPhoto else {
             return
         }
-        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
+       let img =  self.imageRotatedByDegrees(oldImage: imageToSave, deg: CGFloat(90.0))
+        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
         dismiss(animated: true, completion: nil)
     }
     
