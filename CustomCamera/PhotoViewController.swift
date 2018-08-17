@@ -35,34 +35,45 @@ class PhotoViewController: UIViewController {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
+      /*  self.dilation = Dilation()
+        imageToProcess = imageToProcess.filterWithOperation(self.dilation)
         self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
+    */self.takenPhoto = imageToProcess
         return imageToProcess
     }
     // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
-    func segmentMathOperations(for image: UIImage) {
-        if let rgbCapturedImage = RGBAImage(image: image) {
-           
-            let y = 100
-            for x in 0..<100 {
+    func segmentMathOperations(for img: UIImage) {
+       // let img =  self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
+        if let rgbCapturedImage = RGBAImage(image: img) {
+            
+            for y in 0..<Int(img.size.height) {
+                for x in 0..<Int(img.size.width) {
+                    let index = y * rgbCapturedImage.width + x
+                    var pixel = rgbCapturedImage.pixels[index]
+                    var red = pixel.red
+                    var green = pixel.green
+                    var blue = pixel.blue
                 
-                let index = y * rgbCapturedImage.width + x
-                var pixel = rgbCapturedImage.pixels[index]
-                
-                //here I'm setting one pixel of my rgb image to be red
-                pixel.red = 255
-                pixel.green = 0
-                pixel.blue = 0
-                rgbCapturedImage.pixels[index] = pixel
+                    var gray = UInt8((Int(red) + Int(green) + Int(blue)) / 3)
+                   
+                    
+                    
+                    
+                    pixel.red = gray
+                    pixel.green = gray
+                    pixel.blue = gray
+                    rgbCapturedImage.pixels[index] = pixel
+                }
             }
             let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
-            //self.takenPhoto = newUIImageFromRGBAImage
-            let img =  self.imageRotatedByDegrees(oldImage: newUIImageFromRGBAImage!, deg: CGFloat(90.0))
-            UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+            UIImageWriteToSavedPhotosAlbum(newUIImageFromRGBAImage!, nil, nil, nil)
             dismiss(animated: true, completion: nil)
         }
-        
     }
+    
+   
+    
     // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
     func correctOperations() {
         
@@ -76,8 +87,7 @@ class PhotoViewController: UIViewController {
         guard let imageToSave = self.takenPhoto else {
             return
         }
-       let img =  self.imageRotatedByDegrees(oldImage: imageToSave, deg: CGFloat(90.0))
-        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
         dismiss(animated: true, completion: nil)
     }
     
@@ -209,4 +219,3 @@ public class CannyEdgeDetection: OperationGroup {
         }
     }
 }
-
