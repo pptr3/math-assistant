@@ -77,7 +77,6 @@ class PhotoViewController: UIViewController {
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
         
         var foregrounds: Array<Int> = []
-        
         var foregroundAmount = 0
         for row in 0 ..< Int(height) {
             for column in 0 ..< Int(width) {
@@ -89,32 +88,36 @@ class PhotoViewController: UIViewController {
             foregrounds.append(foregroundAmount)
             foregroundAmount = 0
         }
-        
-        
-        var count = 0
-        var secondZeros = 0
-        for z in foregrounds.indices {
-            if foregrounds[z] == 0 {
-                count += 1
-            }
-            if count == 20 { //20 pixels thickness
-                secondZeros += 1
-                count = 0
-            }
-            if secondZeros == 2 {
-                secondZeros = z
-                break
+        //number whose values is different than 0, became 1. (note the noise of image could cause some 1 or 2 or other values (to test), should be converted to 0 instead of 1)
+        for index in foregrounds.indices {
+            if foregrounds[index] != 0 {
+               foregrounds[index] = 1
             }
         }
-        let startZ = secondZeros - 20
-        for row in startZ ..< secondZeros {
-            for column in 0 ..< Int(width) {
-                let offset = row * width + column
-                pixelBuffer[offset] = .red
+        
+        print(foregrounds)
+        var sums : Array<CGPoint> = []
+        var sumIndex = 0
+        var cons = foregrounds[0]
+        if cons == 0 {
+            sums.append(CGPoint(x: 1, y: 0))
+        } else {
+            sums.append(CGPoint(x: 1, y: 1))
+        }
+        for index in 1..<foregrounds.count {
+            if foregrounds[index] == cons {
+                sums[sumIndex].x += 1
+            } else {
+                sumIndex += 1
+                if foregrounds[index] == 0 {
+                    sums.append(CGPoint(x: 1, y: 0))
+                } else {
+                    sums.append(CGPoint(x: 1, y: 1))
+                }
+                cons = foregrounds[index]
             }
         }
-       
-        
+        print(sums)
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         
