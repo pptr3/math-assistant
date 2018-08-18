@@ -27,7 +27,6 @@ class PhotoViewController: UIViewController {
                 //self.correctOperations()
                 //self.displayResult()
             }
-            
         }
     }
     
@@ -39,40 +38,113 @@ class PhotoViewController: UIViewController {
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
         self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-    */self.takenPhoto = imageToProcess
+    */  self.takenPhoto = imageToProcess
         return imageToProcess
     }
     // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
-    func segmentMathOperations(for img: UIImage) {
-       // let img =  self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
-        if let rgbCapturedImage = RGBAImage(image: img) {
-            
-            for y in 0..<Int(img.size.height) {
-                for x in 0..<Int(img.size.width) {
-                    let index = y * rgbCapturedImage.width + x
-                    var pixel = rgbCapturedImage.pixels[index]
-                    var red = pixel.red
-                    var green = pixel.green
-                    var blue = pixel.blue
-                
-                    var gray = UInt8((Int(red) + Int(green) + Int(blue)) / 3)
-                   
-                    
-                    
-                    
-                    pixel.red = gray
-                    pixel.green = gray
-                    pixel.blue = gray
-                    rgbCapturedImage.pixels[index] = pixel
-                }
-            }
-            let newUIImageFromRGBAImage = rgbCapturedImage.toUIImage()
-            UIImageWriteToSavedPhotosAlbum(newUIImageFromRGBAImage!, nil, nil, nil)
-            dismiss(animated: true, completion: nil)
+    func segmentMathOperations(for image: UIImage) {
+        let img =  self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
+        if let testImg = self.processPixels(in: img) {
+            self.takenPhoto = testImg
         }
     }
     
-   
+    
+    func processPixels(in image: UIImage) -> UIImage? {
+        guard let inputCGImage = image.cgImage else {
+            print("unable to get cgImage")
+            return nil
+        }
+        let colorSpace       = CGColorSpaceCreateDeviceRGB()
+        let width            = inputCGImage.width
+        let height           = inputCGImage.height
+        let bytesPerPixel    = 4
+        let bitsPerComponent = 8
+        let bytesPerRow      = bytesPerPixel * width
+        let bitmapInfo       = RGBA32.bitmapInfo
+        
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
+            print("unable to create context")
+            return nil
+        }
+        context.draw(inputCGImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        
+        guard let buffer = context.data else {
+            print("unable to get context data")
+            return nil
+        }
+        
+        let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
+        
+        var white = 0
+        var black = 0
+        
+        for row in 0 ..< Int(height) {
+            for column in 0 ..< Int(width) {
+                let offset = row * width + column
+                if pixelBuffer[offset] == .white {
+                    white += 1
+                }
+                if pixelBuffer[offset] == .black {
+                    black += 1
+                }
+                
+            }
+            break
+            
+        }
+        print("white: \(white), black: \(black)")
+        
+        let outputCGImage = context.makeImage()!
+        let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
+        
+        return outputImage
+    }
+    
+    struct RGBA32: Equatable {
+        private var color: UInt32
+        
+        var redComponent: UInt8 {
+            return UInt8((color >> 24) & 255)
+        }
+        
+        var greenComponent: UInt8 {
+            return UInt8((color >> 16) & 255)
+        }
+        
+        var blueComponent: UInt8 {
+            return UInt8((color >> 8) & 255)
+        }
+        
+        var alphaComponent: UInt8 {
+            return UInt8((color >> 0) & 255)
+        }
+        
+        init(red: UInt8, green: UInt8, blue: UInt8, alpha: UInt8) {
+            let red   = UInt32(red)
+            let green = UInt32(green)
+            let blue  = UInt32(blue)
+            let alpha = UInt32(alpha)
+            color = (red << 24) | (green << 16) | (blue << 8) | (alpha << 0)
+        }
+        
+        static let red     = RGBA32(red: 255, green: 0,   blue: 0,   alpha: 255)
+        static let green   = RGBA32(red: 0,   green: 255, blue: 0,   alpha: 255)
+        static let blue    = RGBA32(red: 0,   green: 0,   blue: 255, alpha: 255)
+        static let white   = RGBA32(red: 255, green: 255, blue: 255, alpha: 255)
+        static let black   = RGBA32(red: 0,   green: 0,   blue: 0,   alpha: 255)
+        static let magenta = RGBA32(red: 255, green: 0,   blue: 255, alpha: 255)
+        static let yellow  = RGBA32(red: 255, green: 255, blue: 0,   alpha: 255)
+        static let cyan    = RGBA32(red: 0,   green: 255, blue: 255, alpha: 255)
+        
+        static let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+        
+        static func ==(lhs: RGBA32, rhs: RGBA32) -> Bool {
+            return lhs.color == rhs.color
+        }
+    }
+    
+    
     
     // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
     func correctOperations() {
