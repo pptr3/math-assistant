@@ -76,24 +76,44 @@ class PhotoViewController: UIViewController {
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
         
-        var white = 0
-        var black = 0
+        var foregrounds: Array<Int> = []
         
+        var foregroundAmount = 0
         for row in 0 ..< Int(height) {
             for column in 0 ..< Int(width) {
                 let offset = row * width + column
                 if pixelBuffer[offset] == .white {
-                    white += 1
+                    foregroundAmount += 1
                 }
-                if pixelBuffer[offset] == .black {
-                    black += 1
-                }
-                
             }
-            break
-            
+            foregrounds.append(foregroundAmount)
+            foregroundAmount = 0
         }
-        print("white: \(white), black: \(black)")
+        
+        
+        var count = 0
+        var secondZeros = 0
+        for z in foregrounds.indices {
+            if foregrounds[z] == 0 {
+                count += 1
+            }
+            if count == 20 { //20 pixels thickness
+                secondZeros += 1
+                count = 0
+            }
+            if secondZeros == 2 {
+                secondZeros = z
+                break
+            }
+        }
+        let startZ = secondZeros - 20
+        for row in startZ ..< secondZeros {
+            for column in 0 ..< Int(width) {
+                let offset = row * width + column
+                pixelBuffer[offset] = .red
+            }
+        }
+       
         
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
