@@ -96,6 +96,7 @@ class PhotoViewController: UIViewController {
         }
         
         print(foregrounds)
+        //calculate sums array -> [0, 0, 1, 1, 0] became -> [(2, 0), (2, 1), (1, 0)]
         var sums : Array<CGPoint> = []
         var sumIndex = 0
         var cons = foregrounds[0]
@@ -105,7 +106,6 @@ class PhotoViewController: UIViewController {
             sums.append(CGPoint(x: 1, y: 1))
         }
         
-        //calculate sums array
         for index in 1..<foregrounds.count {
             if foregrounds[index] == cons {
                 sums[sumIndex].x += 1
@@ -126,10 +126,6 @@ class PhotoViewController: UIViewController {
             if sums[index].y == 1.0 {
                 if Int(sums[index].x) < 10 { //threshold parameter
                     if sums[index - 1].x >= 10 || sums[index + 1].x >= 10 { //threshold parameter
-                      /*  sums[index - 1].x = sums[index - 1].x + sums[index].x + sums[index + 1].x
-                        sums.remove(at: index)
-                        sums.remove(at: index + 1)
-                       */
                         sums[index].y = 0
                     }
                 }
@@ -137,8 +133,26 @@ class PhotoViewController: UIViewController {
         }
         print(sums)
         //need to merge consecutive zeros
+        var sums2 : Array<CGPoint> = []
+        var current = 0
+        var cons2 = sums[0].y
+        sums2.append(sums[0])
         
-        //draw each zeros cluster in image
+        for index in 1..<sums.count {
+            if sums[index].y != cons2 {
+                cons2 = sums[index].y
+                sums2.append(sums[index])
+                current += 1
+            } else {
+                sums2[current].x = sums2[current].x + sums[index].x
+                
+            }
+        }
+         print(sums2)
+        
+        
+        
+        //draw each cluster of zeros in image
         var startDrawing = 0
         for index in sums.indices {
             if sums[index].y == 0 {
