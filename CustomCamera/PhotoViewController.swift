@@ -95,7 +95,7 @@ class PhotoViewController: UIViewController {
             }
         }
         
-        print(foregrounds)
+        
         //calculate sums array -> [0, 0, 1, 1, 0] became -> [(2, 0), (2, 1), (1, 0)]
         var sums : Array<CGPoint> = []
         var sumIndex = 0
@@ -119,20 +119,28 @@ class PhotoViewController: UIViewController {
                 cons = foregrounds[index]
             }
         }
-        print(sums)
-
-        //delete noise (todo: need to check the case of 0.0 and over and under there is 1.0)
-        for index in sums.indices {
+        
+        if sums.count <= 1 { // means all white paper or all black paper
+            //TODO: to handle this case. Make a pop-up appear saying "take another photo"
+            return nil
+        }
+        //delete noise
+        for index in 1..<sums.count - 1 { // to test with "-1"
             if sums[index].y == 1.0 {
-                if Int(sums[index].x) < 10 { //threshold parameter
-                    if sums[index - 1].x >= 10 || sums[index + 1].x >= 10 { //threshold parameter
+                if Int(sums[index].x) < 10 { //threshold for white noise
+                    if sums[index - 1].x >= 10 || sums[index + 1].x >= 10 { //threshold for white noise
                         sums[index].y = 0
                     }
                 }
             }
         }
-        print(sums)
-        //need to merge consecutive zeros
+        //check if first element is a white-noise. Noise for first element -> 5
+        if sums[0].y == 1.0, sums[0].x < 5 {
+            sums[0].y = 0.0
+        }
+        
+        
+        //merge consecutive zeros
         var sums2 : Array<CGPoint> = []
         var current = 0
         var cons2 = sums[0].y
@@ -148,15 +156,48 @@ class PhotoViewController: UIViewController {
                 
             }
         }
-         print(sums2)
+
+        if sums2.count > 1 {
+            //delete black noise which elapes between two big white cluster
+            for index in 1..<sums2.count - 1 {
+                if sums2[index].y == 0.0 {
+                    if Int(sums2[index].x) <= 20 { //threshold for black noise
+                        if sums2[index - 1].x >= 10 || sums2[index + 1].x >= 10 { //threshold for black noise
+                            sums2[index].y = 1.0
+                        }
+                        
+                    }
+                }
+            }
+            //check if first element is a zero-noise. Noise for first element -> 5
+            if sums2[0].y == 0.0, sums2[0].x < 5 {
+                sums2[0].y = 1.0
+            }
+        }
         
+        //merge consecutive ones
+        var sums3 : Array<CGPoint> = []
+        var current2 = 0
+        var cons3 = sums2[0].y
+        sums3.append(sums2[0])
         
+        for index in 1..<sums2.count {
+            if sums2[index].y != cons3 {
+                cons3 = sums2[index].y
+                sums3.append(sums2[index])
+                current2 += 1
+            } else {
+                sums3[current2].x = sums3[current2].x + sums2[index].x
+                
+            }
+        }
+        print(sums3)
         
-        //draw each cluster of zeros in image
+        //draw zeros
         var startDrawing = 0
-        for index in sums.indices {
-            if sums[index].y == 0 {
-                for row in startDrawing ..< (Int(sums[index].x) + startDrawing){
+        for index in sums3.indices {
+            if sums3[index].y == 0 {
+                for row in startDrawing ..< (Int(sums3[index].x) + startDrawing){
                     for column in 0 ..< Int(width) {
                         let offset = row * width + column
                         pixelBuffer[offset] = .red
@@ -164,7 +205,7 @@ class PhotoViewController: UIViewController {
                     
                 }
             }
-            startDrawing = startDrawing + Int(sums[index].x)
+            startDrawing = startDrawing + Int(sums3[index].x)
         }
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
