@@ -75,7 +75,7 @@ class PhotoViewController: UIViewController {
         }
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
-        
+        //calculate foregrounds array
         var foregrounds: Array<Int> = []
         var foregroundAmount = 0
         for row in 0 ..< Int(height) {
@@ -88,7 +88,7 @@ class PhotoViewController: UIViewController {
             foregrounds.append(foregroundAmount)
             foregroundAmount = 0
         }
-        //number whose values is different than 0, became 1. (note the noise of image could cause some 1 or 2 or other values (to test), should be converted to 0 instead of 1)
+        //number whose values is different than 0, became 1. (note the noise of image could cause some 1 or 2 or other values (to test), should be converted to 0 instead of 1) -- smooth operation
         for index in foregrounds.indices {
             if foregrounds[index] != 0 {
                foregrounds[index] = 1
@@ -104,6 +104,8 @@ class PhotoViewController: UIViewController {
         } else {
             sums.append(CGPoint(x: 1, y: 1))
         }
+        
+        //calculate sums array
         for index in 1..<foregrounds.count {
             if foregrounds[index] == cons {
                 sums[sumIndex].x += 1
@@ -118,6 +120,38 @@ class PhotoViewController: UIViewController {
             }
         }
         print(sums)
+
+        //delete noise (todo: need to check the case of 0.0 and over and under there is 1.0)
+        for index in sums.indices {
+            if sums[index].y == 1.0 {
+                if Int(sums[index].x) < 10 { //threshold parameter
+                    if sums[index - 1].x >= 10 || sums[index + 1].x >= 10 { //threshold parameter
+                      /*  sums[index - 1].x = sums[index - 1].x + sums[index].x + sums[index + 1].x
+                        sums.remove(at: index)
+                        sums.remove(at: index + 1)
+                       */
+                        sums[index].y = 0
+                    }
+                }
+            }
+        }
+        print(sums)
+        //need to merge consecutive zeros
+        
+        //draw each zeros cluster in image
+        var startDrawing = 0
+        for index in sums.indices {
+            if sums[index].y == 0 {
+                for row in startDrawing ..< (Int(sums[index].x) + startDrawing){
+                    for column in 0 ..< Int(width) {
+                        let offset = row * width + column
+                        pixelBuffer[offset] = .red
+                    }
+                    
+                }
+            }
+            startDrawing = startDrawing + Int(sums[index].x)
+        }
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         
