@@ -209,7 +209,7 @@ class PhotoViewController: UIViewController {
         }
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        
+        //TODO: need to coun how many pixels corresponds 0.5 cm (square of paper distance) and set the threshold accordly. Need also to test a full page of operations or in others orders.
         return outputImage
     }
     
