@@ -75,54 +75,70 @@ class PhotoViewController: UIViewController {
             let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
             let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
             let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-            print(sums3)
             self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
-        }
-        
-        
-        
-       
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //test for first row - math operation segmentation
-        
-     /*   var start = 0
-        var stop = 0
-        
-        for index in sums3.indices {
-            if sums3[index].y == 1.0 {
-                stop = start + Int(sums3[index].x)
-                break
-            } else {
-                start = start + Int(sums3[index].x)
+
+            
+            var start = 0
+            var stop = 0
+            
+            for index in sums3.indices {
+                if sums3[index].y == 1.0 {
+                    stop = start + Int(sums3[index].x)
+                    break
+                } else {
+                    start = start + Int(sums3[index].x)
+                }
             }
-        }
-        print("start: \(start), stop: \(stop)")
-        
-       for col in 0 ..< Int(width) {
-            for row in (start ..< stop).reversed() {
-                let offset = row * width + col
-                pixelBuffer[offset] = .yellow
+            
+            var foregrounds2: Array<Int> = []
+            var foregroundAmount = 0
+            for col in 0 ..< Int(width) {
+                for row in (start ..< stop).reversed() {
+                    let offset = row * width + col
+                    if pixelBuffer[offset] == .white {
+                        foregroundAmount += 1
+                    }
+                }
+                foregrounds2.append(foregroundAmount)
+                foregroundAmount = 0
             }
-        }*/
-  
+            //number whose values is different than 0, became 1
+            for index in foregrounds2.indices {
+                if foregrounds2[index] != 0 {
+                    foregrounds2[index] = 1
+                }
+            }
+            
+            if let sums = self.calculateSum(from: foregrounds2) {
+                let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
+                let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
+                let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+                let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+                
+                
+                var startDrawing = 0
+                for index in sums3.indices {
+                    if sums3[index].y == 0 {
+                        for col in startDrawing ..< (Int(sums3[index].x) + startDrawing){
+                            for row in (start ..< stop).reversed() {
+                                let offset = row * width + col
+                                pixelBuffer[offset] = .blue
+                            }
+                            
+                        }
+                    }
+                    startDrawing = startDrawing + Int(sums3[index].x)
+                }
+            }
+            
+          /*
+           for col in 0 ..< Int(width) {
+                for row in (start ..< stop).reversed() {
+                    let offset = row * width + col
+                    pixelBuffer[offset] = .yellow
+                }
+            }*/
+        }
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         return outputImage
