@@ -26,7 +26,8 @@ class PhotoViewController: UIViewController {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
-      /*  self.dilation = Dilation()
+      /* Try closing or opening or just erosion operations
+        self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
         self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
@@ -67,7 +68,67 @@ class PhotoViewController: UIViewController {
         }
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
-        //calculate foregrounds array
+        
+        let foregrounds = self.calculateForeground(from: pixelBuffer, withWidth: width, andHeight: height)
+        if let sums = self.calculateSum(from: foregrounds) {
+            let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
+            let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
+            let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+            let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+            print(sums3)
+            self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
+        }
+        
+        
+        
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        //test for first row - math operation segmentation
+        
+     /*   var start = 0
+        var stop = 0
+        
+        for index in sums3.indices {
+            if sums3[index].y == 1.0 {
+                stop = start + Int(sums3[index].x)
+                break
+            } else {
+                start = start + Int(sums3[index].x)
+            }
+        }
+        print("start: \(start), stop: \(stop)")
+        
+       for col in 0 ..< Int(width) {
+            for row in (start ..< stop).reversed() {
+                let offset = row * width + col
+                pixelBuffer[offset] = .yellow
+            }
+        }*/
+  
+        let outputCGImage = context.makeImage()!
+        let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
+        return outputImage
+    }
+    
+    func calculateForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int> {
         var foregrounds: Array<Int> = []
         var foregroundAmount = 0
         for row in 0 ..< Int(height) {
@@ -80,15 +141,17 @@ class PhotoViewController: UIViewController {
             foregrounds.append(foregroundAmount)
             foregroundAmount = 0
         }
-        //number whose values is different than 0, became 1. (note the noise of image could cause some 1 or 2 or other values (to test), should be converted to 0 instead of 1) -- smooth operation
+        //number whose values is different than 0, became 1
         for index in foregrounds.indices {
             if foregrounds[index] != 0 {
-               foregrounds[index] = 1
+                foregrounds[index] = 1
             }
         }
-        
-        
-        //calculate sums array -> [0, 0, 1, 1, 0] became -> [(2, 0), (2, 1), (1, 0)]
+        return foregrounds
+    }
+    
+    //calculate sums array -> [0, 0, 1, 1, 0] became -> [(2, 0), (2, 1), (1, 0)]
+    func calculateSum(from foregrounds: Array<Int>) -> Array<CGPoint>? {
         var sums : Array<CGPoint> = []
         var sumIndex = 0
         var cons = foregrounds[0]
@@ -111,16 +174,20 @@ class PhotoViewController: UIViewController {
                 cons = foregrounds[index]
             }
         }
-        
         if sums.count <= 1 { // means all white paper or all black paper
             //TODO: to handle this case. Make a pop-up appear saying "take another photo"
             return nil
+        } else {
+            return sums
         }
-        //delete noise
-        for index in 1..<sums.count - 1 { // to test with "-1"
+    }
+    
+    func deleteWhiteNoise(for arrayOfPoints: Array<CGPoint>, withThreshold threshold: Int) -> Array<CGPoint> {
+        var sums = arrayOfPoints
+        for index in 1..<sums.count - 1 {
             if sums[index].y == 1.0 {
-                if Int(sums[index].x) < 10 { //threshold for white noise
-                    if sums[index - 1].x >= 10 || sums[index + 1].x >= 10 { //threshold for white noise
+                if Int(sums[index].x) < threshold { //threshold for white noise
+                    if Int(sums[index - 1].x) >= threshold || Int(sums[index + 1].x) >= threshold { //threshold for white noise
                         sums[index].y = 0
                     }
                 }
@@ -130,62 +197,52 @@ class PhotoViewController: UIViewController {
         if sums[0].y == 1.0, sums[0].x < 5 {
             sums[0].y = 0.0
         }
-        
-        
-        //merge consecutive zeros
+        return sums
+    }
+    
+    //merge consecutive equals numbers
+    func mergeConsecutiveEqualsNumbers(in sumsWithoutNoise: Array<CGPoint>) -> Array<CGPoint> {
         var sums2 : Array<CGPoint> = []
         var current = 0
-        var cons2 = sums[0].y
-        sums2.append(sums[0])
+        var cons2 = sumsWithoutNoise[0].y
+        sums2.append(sumsWithoutNoise[0])
         
-        for index in 1..<sums.count {
-            if sums[index].y != cons2 {
-                cons2 = sums[index].y
-                sums2.append(sums[index])
+        for index in 1..<sumsWithoutNoise.count {
+            if sumsWithoutNoise[index].y != cons2 {
+                cons2 = sumsWithoutNoise[index].y
+                sums2.append(sumsWithoutNoise[index])
                 current += 1
             } else {
-                sums2[current].x = sums2[current].x + sums[index].x
+                sums2[current].x = sums2[current].x + sumsWithoutNoise[index].x
                 
             }
         }
+        return sums2
+    }
 
+    
+    func deleteBlackNoise(for sums: Array<CGPoint>, withBlackNoise blackNoise: Int, andWhiteNoise whiteNoise: Int, noiseForFirstElement first: Int) -> Array<CGPoint> {
+        var sums2 = sums
         if sums2.count > 1 {
             //delete black noise which elapes between two big white cluster
             for index in 1..<sums2.count - 1 {
                 if sums2[index].y == 0.0 {
-                    if Int(sums2[index].x) <= 20 { //threshold for black noise
-                        if sums2[index - 1].x >= 10 || sums2[index + 1].x >= 10 { //threshold for black noise
+                    if Int(sums2[index].x) <= blackNoise { //threshold for black noise
+                        if Int(sums2[index - 1].x) >= whiteNoise || Int(sums2[index + 1].x) >= whiteNoise { //threshold for black noise
                             sums2[index].y = 1.0
                         }
-                        
                     }
                 }
             }
-            //check if first element is a zero-noise. Noise for first element -> 5
-            if sums2[0].y == 0.0, sums2[0].x < 5 {
+            //check if first element is a zero-noise. Noise for first element -> first
+            if sums2[0].y == 0.0, Int(sums2[0].x) <= first {
                 sums2[0].y = 1.0
             }
         }
-        
-        //merge consecutive ones
-        var sums3 : Array<CGPoint> = []
-        var current2 = 0
-        var cons3 = sums2[0].y
-        sums3.append(sums2[0])
-        
-        for index in 1..<sums2.count {
-            if sums2[index].y != cons3 {
-                cons3 = sums2[index].y
-                sums3.append(sums2[index])
-                current2 += 1
-            } else {
-                sums3[current2].x = sums3[current2].x + sums2[index].x
-                
-            }
-        }
-        print(sums3)
-        
-        //draw zeros
+        return sums2
+    }
+    
+    func drawHorizontalLines(for sums3: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int){
         var startDrawing = 0
         for index in sums3.indices {
             if sums3[index].y == 0 {
@@ -199,54 +256,47 @@ class PhotoViewController: UIViewController {
             }
             startDrawing = startDrawing + Int(sums3[index].x)
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //test for first row - math operation segmentation
-        
-        var start = 0
-        var stop = 0
-        
-        for index in sums3.indices {
-            if sums3[index].y == 1.0 {
-                stop = start + Int(sums3[index].x)
-                break
-            } else {
-                start = start + Int(sums3[index].x)
-            }
-        }
-        print("start: \(start), stop: \(stop)")
-        
-       for col in 0 ..< Int(width) {
-            for row in (start ..< stop).reversed() {
-                let offset = row * width + col
-                pixelBuffer[offset] = .yellow
-            }
-        }
-  
-        let outputCGImage = context.makeImage()!
-        let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        return outputImage
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     struct RGBA32: Equatable {
         private var color: UInt32
