@@ -1,11 +1,3 @@
-//
-//  PhotoViewController.swift
-//  CustomCamera
-//
-//  Created by Brian Advent on 24/01/2017.
-//  Copyright © 2017 Brian Advent. All rights reserved.
-//
-
 import UIKit
 import MathpixClient
 import GPUImage
@@ -207,9 +199,52 @@ class PhotoViewController: UIViewController {
             }
             startDrawing = startDrawing + Int(sums3[index].x)
         }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        //test for first row - math operation segmentation
+        
+        var start = 0
+        var stop = 0
+        
+        for index in sums3.indices {
+            if sums3[index].y == 1.0 {
+                stop = start + Int(sums3[index].x)
+                break
+            } else {
+                start = start + Int(sums3[index].x)
+            }
+        }
+        print("start: \(start), stop: \(stop)")
+        
+       for col in 0 ..< Int(width) {
+            for row in (start ..< stop).reversed() {
+                let offset = row * width + col
+                pixelBuffer[offset] = .yellow
+            }
+        }
+  
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        //TODO: need to coun how many pixels corresponds 0.5 cm (square of paper distance) and set the threshold accordly. Need also to test a full page of operations or in others orders.
         return outputImage
     }
     
