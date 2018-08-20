@@ -83,7 +83,7 @@ class PhotoViewController: UIViewController {
             for index in sums3.indices {
                 if sums3[index].y == 1.0 {
                     stop = start + Int(sums3[index].x)
-                    
+                    break
                 } else {
                     start = start + Int(sums3[index].x)
                 }
@@ -95,21 +95,7 @@ class PhotoViewController: UIViewController {
                 let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
                 let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
                 let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-                
-                
-                var startDrawing = 0
-                for index in sums3.indices {
-                    if sums3[index].y == 0 {
-                        for col in startDrawing ..< (Int(sums3[index].x) + startDrawing){
-                            for row in (start ..< stop).reversed() {
-                                let offset = row * width + col
-                                pixelBuffer[offset] = .blue
-                            }
-                            
-                        }
-                    }
-                    startDrawing = startDrawing + Int(sums3[index].x)
-                }
+                self.drawVerticalLines(for: sums3, in: pixelBuffer, withWidth: width, from: start, to: stop)
             }
             
           /*
@@ -278,6 +264,21 @@ class PhotoViewController: UIViewController {
         }
     }
     
+    func drawVerticalLines(for sums3: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, from start: Int, to stop: Int) {
+        var startDrawing = 0
+        for index in sums3.indices {
+            if sums3[index].y == 0 {
+                for col in startDrawing ..< (Int(sums3[index].x) + startDrawing){
+                    for row in (start ..< stop).reversed() {
+                        let offset = row * width + col
+                        pixelBuffer[offset] = .blue
+                    }
+                    
+                }
+            }
+            startDrawing = startDrawing + Int(sums3[index].x)
+        }
+    }
     
     
     
