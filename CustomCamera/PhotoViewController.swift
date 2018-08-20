@@ -69,7 +69,7 @@ class PhotoViewController: UIViewController {
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
         
-        let foregrounds = self.calculateForeground(from: pixelBuffer, withWidth: width, andHeight: height)
+        let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
         if let sums = self.calculateSum(from: foregrounds) {
             let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
             let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
@@ -80,35 +80,16 @@ class PhotoViewController: UIViewController {
             
             var start = 0
             var stop = 0
-            
             for index in sums3.indices {
                 if sums3[index].y == 1.0 {
                     stop = start + Int(sums3[index].x)
-                    break
+                    
                 } else {
                     start = start + Int(sums3[index].x)
                 }
             }
             
-            var foregrounds2: Array<Int> = []
-            var foregroundAmount = 0
-            for col in 0 ..< Int(width) {
-                for row in (start ..< stop).reversed() {
-                    let offset = row * width + col
-                    if pixelBuffer[offset] == .white {
-                        foregroundAmount += 1
-                    }
-                }
-                foregrounds2.append(foregroundAmount)
-                foregroundAmount = 0
-            }
-            //number whose values is different than 0, became 1
-            for index in foregrounds2.indices {
-                if foregrounds2[index] != 0 {
-                    foregrounds2[index] = 1
-                }
-            }
-            
+            let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
             if let sums = self.calculateSum(from: foregrounds2) {
                 let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
                 let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
@@ -144,7 +125,7 @@ class PhotoViewController: UIViewController {
         return outputImage
     }
     
-    func calculateForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int> {
+    func calculateHorizontalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int> {
         var foregrounds: Array<Int> = []
         var foregroundAmount = 0
         for row in 0 ..< Int(height) {
@@ -164,6 +145,29 @@ class PhotoViewController: UIViewController {
             }
         }
         return foregrounds
+    }
+    
+    
+    func calculateVerticalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, from start: Int, to stop: Int) -> Array<Int> {
+        var foregrounds2: Array<Int> = []
+        var foregroundAmount = 0
+        for col in 0 ..< Int(width) {
+            for row in (start ..< stop).reversed() {
+                let offset = row * width + col
+                if pixelBuffer[offset] == .white {
+                    foregroundAmount += 1
+                }
+            }
+            foregrounds2.append(foregroundAmount)
+            foregroundAmount = 0
+        }
+        //number whose values is different than 0, became 1
+        for index in foregrounds2.indices {
+            if foregrounds2[index] != 0 {
+                foregrounds2[index] = 1
+            }
+        }
+        return foregrounds2
     }
     
     //calculate sums array -> [0, 0, 1, 1, 0] became -> [(2, 0), (2, 1), (1, 0)]
