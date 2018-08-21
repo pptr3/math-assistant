@@ -8,7 +8,7 @@ class PhotoViewController: UIViewController {
     var takenPhoto: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
-   
+    var mathOperations =  Array<MathOperation>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,14 +73,18 @@ class PhotoViewController: UIViewController {
         let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
         if let sums = self.calculateSum(from: foregrounds) {
             let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height)
-            print(sums3)
             self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
         }
         
-        
+        print(self.mathOperations)
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         //self.cropImage(for: outputImage, with: CGRect(x: 2, y: 2, width: 50, height: 50))
+        for index in self.mathOperations.indices {
+            let croppedImage = self.cropImage(for: outputImage, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+            UIImageWriteToSavedPhotosAlbum(croppedImage, nil, nil, nil)
+            dismiss(animated: true, completion: nil)
+        }
         return outputImage
     }
     
@@ -250,13 +254,18 @@ class PhotoViewController: UIViewController {
                 }
             } else {
                 //width of white block operations
-                print("width white: \(Int(sums3[index].x))")
+                //print("width white: \(Int(sums3[index].x))")
                 //height of white block operations
-                print("height: \(stop - start)")
+                //print("height: \(stop - start)")
                 //x coordinate of white block operation
-                print("x coordinate: \(startDrawing)")
+                //print("x coordinate: \(startDrawing)")
                 //y coordinate of white block operation
-                print("y coordinate: \(start)")
+                //print("y coordinate: \(start)")
+                
+                let mathOp = MathOperation.init(operation: "undefined", width: Int(sums3[index].x), height: stop - start, x: startDrawing, y: start, isCorrect: false)
+                self.mathOperations.append(mathOp)
+                
+                
             }
             startDrawing = startDrawing + Int(sums3[index].x)
         }
@@ -286,7 +295,6 @@ class PhotoViewController: UIViewController {
                     let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
                     let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
                     self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
-                    print("v:\(sums32)")
                 }
             }
             start = start + Int(sums3[index].x)
