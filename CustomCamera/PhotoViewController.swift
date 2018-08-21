@@ -248,6 +248,15 @@ class PhotoViewController: UIViewController {
                     }
                     
                 }
+            } else {
+                //width of white block operations
+                print("width white: \(Int(sums3[index].x))")
+                //height of white block operations
+                print("height: \(stop - start)")
+                //x coordinate of white block operation
+                print("x coordinate: \(startDrawing)")
+                //y coordinate of white block operation
+                print("y coordinate: \(start)")
             }
             startDrawing = startDrawing + Int(sums3[index].x)
         }
