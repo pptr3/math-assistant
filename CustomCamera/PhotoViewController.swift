@@ -9,6 +9,7 @@ class PhotoViewController: UIViewController {
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +20,7 @@ class PhotoViewController: UIViewController {
                 //self.correctOperations()
                 //self.displayResult()
             }
+           
         }
     }
     
@@ -26,7 +28,7 @@ class PhotoViewController: UIViewController {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
-      /* Try closing or opening or just erosion operations
+      /* Try closing or opening or just erosion (for delete border paper) operations
         self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
         self.dilation = Dilation()
@@ -36,7 +38,7 @@ class PhotoViewController: UIViewController {
     }
     // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
     func segmentMathOperations(for image: UIImage) {
-        let img =  self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
+        let img =  image //self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
         if let testImg = self.processPixels(in: img) {
             self.takenPhoto = testImg
         }
@@ -81,8 +83,8 @@ class PhotoViewController: UIViewController {
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         //self.cropImage(for: outputImage, with: CGRect(x: 2, y: 2, width: 50, height: 50))
         for index in self.mathOperations.indices {
-            let croppedImage = self.cropImage(for: outputImage, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
-            UIImageWriteToSavedPhotosAlbum(croppedImage, nil, nil, nil)
+            let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+            UIImageWriteToSavedPhotosAlbum(self.imageRotatedByDegrees(oldImage: croppedImage, deg: CGFloat(90.0)), nil, nil, nil)
             dismiss(animated: true, completion: nil)
         }
         return outputImage
@@ -274,7 +276,7 @@ class PhotoViewController: UIViewController {
     func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint> {
         let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
         let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-        let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+        let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 16, andWhiteNoise: 10, noiseForFirstElement: 5)
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
         self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
@@ -290,9 +292,9 @@ class PhotoViewController: UIViewController {
                 stop = start + Int(sums3[index].x)
                 let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
                 if let sums = self.calculateSum(from: foregrounds2) {
-                    let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
+                    let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 5)
                     let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-                    let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+                    let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5)
                     let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
                     self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
                 }
