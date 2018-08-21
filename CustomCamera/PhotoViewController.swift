@@ -80,9 +80,10 @@ class PhotoViewController: UIViewController {
             print(sums3)
             var start = 0
             var stop = 0
-            for index in 0 ..< sums3.count - 1 {
-                if sums3[index].y == 1.0 {
+            for index in 0 ..< sums3.count {
+                if sums3[index].y == 1.0 && start <= 1000 {
                     stop = start + Int(sums3[index].x)
+                    print("start: \(start), stop: \(stop), width: \(width), height: \(height)")
                     let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
                     if let sums = self.calculateSum(from: foregrounds2) {
                         let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
@@ -95,14 +96,7 @@ class PhotoViewController: UIViewController {
                 start = start + Int(sums3[index].x)
             }
             
-            let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
-            if let sums = self.calculateSum(from: foregrounds2) {
-                let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
-                let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-                let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
-                let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-                self.drawVerticalLines(for: sums3, in: pixelBuffer, withWidth: width, from: start, to: stop)
-            }
+         
           /*
            for col in 0 ..< Int(width) {
                 for row in (start ..< stop).reversed() {
