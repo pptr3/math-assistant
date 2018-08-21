@@ -69,42 +69,14 @@ class PhotoViewController: UIViewController {
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
         
+        
         let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
         if let sums = self.calculateSum(from: foregrounds) {
-            let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
-            let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-            let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
-            let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-            self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
-
-            print(sums3)
-            var start = 0
-            var stop = 0
-            for index in 0 ..< sums3.count {
-                if sums3[index].y == 1.0 && start <= 1000 {
-                    stop = start + Int(sums3[index].x)
-                    print("start: \(start), stop: \(stop), width: \(width), height: \(height)")
-                    let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
-                    if let sums = self.calculateSum(from: foregrounds2) {
-                        let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
-                        let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-                        let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
-                        let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-                        self.drawVerticalLines(for: sums3, in: pixelBuffer, withWidth: width, from: start, to: stop)
-                    }
-                }
-                start = start + Int(sums3[index].x)
-            }
-            
-         
-          /*
-           for col in 0 ..< Int(width) {
-                for row in (start ..< stop).reversed() {
-                    let offset = row * width + col
-                    pixelBuffer[offset] = .yellow
-                }
-            }*/
+            let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height)
+            self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
         }
+        
+        
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         return outputImage
@@ -278,6 +250,50 @@ class PhotoViewController: UIViewController {
             startDrawing = startDrawing + Int(sums3[index].x)
         }
     }
+    
+    func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint> {
+        let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
+        let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
+        let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+        let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+        self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
+        return sums3
+    }
+    
+    
+    
+    func fireVerticalGrid(for sums3: Array<CGPoint>, in pixelBuffer: UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) {
+        var start = 0
+        var stop = 0
+        for index in 0 ..< sums3.count {
+            if sums3[index].y == 1.0 && start <= height {
+                stop = start + Int(sums3[index].x)
+                let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
+                if let sums = self.calculateSum(from: foregrounds2) {
+                    let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
+                    let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
+                    let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
+                    let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+                    self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
+                }
+            }
+            start = start + Int(sums3[index].x)
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
