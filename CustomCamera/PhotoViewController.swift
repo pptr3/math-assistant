@@ -73,12 +73,14 @@ class PhotoViewController: UIViewController {
         let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
         if let sums = self.calculateSum(from: foregrounds) {
             let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height)
+            print(sums3)
             self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
         }
         
         
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
+        //self.cropImage(for: outputImage, with: CGRect(x: 2, y: 2, width: 50, height: 50))
         return outputImage
     }
     
@@ -275,6 +277,7 @@ class PhotoViewController: UIViewController {
                     let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 20, andWhiteNoise: 10, noiseForFirstElement: 5)
                     let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
                     self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
+                    print("v:\(sums32)")
                 }
             }
             start = start + Int(sums3[index].x)
@@ -499,6 +502,13 @@ class PhotoViewController: UIViewController {
         UIGraphicsEndImageContext()
         return newImage!
     }
+    
+    func cropImage(for image: UIImage, with bounds: CGRect) -> UIImage {
+        let cgImage = image.cgImage?.cropping(to: bounds)
+        let image = UIImage(cgImage: cgImage!)
+        return image
+    }
+    
 }
 
 public class CannyEdgeDetection: OperationGroup {
