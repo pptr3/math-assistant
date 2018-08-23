@@ -4,6 +4,8 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
+    @IBOutlet weak var text2: UITextView!
+    @IBOutlet weak var text: UITextView!
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var canny: CannyEdgeDetection!
@@ -17,7 +19,9 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                //self.correctOperations()
+                self.correctOperations()
+                
+               
                 //self.displayResult()
             }
            
@@ -32,18 +36,73 @@ class PhotoViewController: UIViewController {
         self.dilation = Dilation()
         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
         self.dilation = Dilation()
-        imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-    */  self.takenPhoto = imageToProcess
+        imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
+        self.takenPhoto = imageToProcess
         return imageToProcess
     }
+    
     // segmentMathOperations: take the filtered image (canny + dilation) and find the coordinates of each math operation. Then add them in an array.
     func segmentMathOperations(for image: UIImage) {
-        let img =  image //self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
-        if let testImg = self.processPixels(in: img) {
+        if let testImg = self.processPixels(in: image) {
             self.takenPhoto = testImg
         }
     }
     
+    // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
+    func correctOperations() {
+        for index in self.mathOperations.indices {
+            let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+            
+                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                    if index == 0 {
+                        self.text.text = result.debugDescription
+                    } else {
+                        self.text2.text = result.debugDescription
+                    }
+                
+                }
+           
+            if index == 1 {
+                break
+            }
+         
+        }
+    }
+    
+    
+    // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
+    func displayResult() -> UIImage? {
+        return nil
+    }
+    
+    @IBAction func savePhoto(_ sender: Any) {
+        guard let imageToSave = self.takenPhoto else {
+            return
+        }
+        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @IBAction func goBack(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    func recognizeMathOperation(for image :UIImage) -> String {
+        MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+            //let chars = Array(result.debugDescription)
+            /*if let coordinates = self.getCoordinates(from: chars) {
+                //here is commented beacause self.imageView as been converted into RenderView for testing Canny edge detection
+                //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+                // let toonFilter = CannyEdgeDetection()
+                //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
+                // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
+            } else {
+                self.dismiss(animated: true, completion: nil)
+            }*/
+            return result.debugDescription
+        }
+        return "nono"
+    }
     
     func processPixels(in image: UIImage) -> UIImage? {
         guard let inputCGImage = image.cgImage else {
@@ -73,15 +132,14 @@ class PhotoViewController: UIViewController {
         
         
         let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
-        if let sums = self.calculateSum(from: foregrounds) {
-            let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height)
+        if let sums = self.calculateSum(from: foregrounds!) {
+            guard let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height) else { return nil }
             self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
         }
-        
-        print(self.mathOperations)
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        //self.cropImage(for: outputImage, with: CGRect(x: 2, y: 2, width: 50, height: 50))
+        
+        //test cropping single operations
         for index in self.mathOperations.indices {
             let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             UIImageWriteToSavedPhotosAlbum(self.imageRotatedByDegrees(oldImage: croppedImage, deg: CGFloat(90.0)), nil, nil, nil)
@@ -90,7 +148,7 @@ class PhotoViewController: UIViewController {
         return outputImage
     }
     
-    func calculateHorizontalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int> {
+    func calculateHorizontalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int>? {
         var foregrounds: Array<Int> = []
         var foregroundAmount = 0
         for row in 0 ..< Int(height) {
@@ -113,7 +171,7 @@ class PhotoViewController: UIViewController {
     }
     
     
-    func calculateVerticalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, from start: Int, to stop: Int) -> Array<Int> {
+    func calculateVerticalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, from start: Int, to stop: Int) -> Array<Int>? {
         var foregrounds2: Array<Int> = []
         var foregroundAmount = 0
         for col in 0 ..< Int(width) {
@@ -167,12 +225,12 @@ class PhotoViewController: UIViewController {
         }
     }
     
-    func deleteWhiteNoise(for arrayOfPoints: Array<CGPoint>, withThreshold threshold: Int) -> Array<CGPoint> {
+    func deleteWhiteNoise(for arrayOfPoints: Array<CGPoint>, withThreshold threshold: Int) -> Array<CGPoint>? {
         var sums = arrayOfPoints
         for index in 1..<sums.count - 1 {
             if sums[index].y == 1.0 {
-                if Int(sums[index].x) < threshold { //threshold for white noise
-                    if Int(sums[index - 1].x) >= threshold || Int(sums[index + 1].x) >= threshold { //threshold for white noise
+                if Int(sums[index].x) <= threshold { //threshold for white noise
+                    if Int(sums[index - 1].x) > threshold || Int(sums[index + 1].x) > threshold { //threshold for white noise
                         sums[index].y = 0
                     }
                 }
@@ -186,7 +244,7 @@ class PhotoViewController: UIViewController {
     }
     
     //merge consecutive equals numbers
-    func mergeConsecutiveEqualsNumbers(in sumsWithoutNoise: Array<CGPoint>) -> Array<CGPoint> {
+    func mergeConsecutiveEqualsNumbers(in sumsWithoutNoise: Array<CGPoint>) -> Array<CGPoint>? {
         var sums2 : Array<CGPoint> = []
         var current = 0
         var cons2 = sumsWithoutNoise[0].y
@@ -206,7 +264,7 @@ class PhotoViewController: UIViewController {
     }
 
     
-    func deleteBlackNoise(for sums: Array<CGPoint>, withBlackNoise blackNoise: Int, andWhiteNoise whiteNoise: Int, noiseForFirstElement first: Int) -> Array<CGPoint> {
+    func deleteBlackNoise(for sums: Array<CGPoint>, withBlackNoise blackNoise: Int, andWhiteNoise whiteNoise: Int, noiseForFirstElement first: Int) -> Array<CGPoint>? {
         var sums2 = sums
         if sums2.count > 1 {
             //delete black noise which elapes between two big white cluster
@@ -227,7 +285,7 @@ class PhotoViewController: UIViewController {
         return sums2
     }
     
-    func drawHorizontalLines(for sums3: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int){
+    func drawHorizontalLines(for sums3: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) {
         var startDrawing = 0
         for index in sums3.indices {
             if sums3[index].y == 0 {
@@ -273,12 +331,12 @@ class PhotoViewController: UIViewController {
         }
     }
     
-    func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint> {
-        let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10)
-        let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-        let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 16, andWhiteNoise: 10, noiseForFirstElement: 5)
+    func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
+        guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return nil}
+        guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 10, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-        self.drawHorizontalLines(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
+        self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
     }
     
@@ -291,11 +349,11 @@ class PhotoViewController: UIViewController {
             if sums3[index].y == 1.0 && start <= height {
                 stop = start + Int(sums3[index].x)
                 let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
-                if let sums = self.calculateSum(from: foregrounds2) {
-                    let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 5)
-                    let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise)
-                    let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5)
-                    let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+                if let sums = self.calculateSum(from: foregrounds2!) {
+                    guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return }
+                    guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return }
+                    guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5) else { return }
+                    guard let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise) else { return}
                     self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
                 }
             }
@@ -398,46 +456,7 @@ class PhotoViewController: UIViewController {
             return lhs.color == rhs.color
         }
     }
-    
-    
-    
-    // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
-    func correctOperations() {
-        
-    }
-    // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
-    func displayResult() -> UIImage? {
-        return nil
-    }
-    
-    @IBAction func savePhoto(_ sender: Any) {
-        guard let imageToSave = self.takenPhoto else {
-            return
-        }
-        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @IBAction func goBack(_ sender: Any) {
-        self.dismiss(animated: true, completion: nil)
-    }
-/*
-    func recognizeMathOperation(for image :UIImage){
-        MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-            let chars = Array(result.debugDescription)
-            if let coordinates = self.getCoordinates(from: chars) {
-                //here is commented beacause self.imageView as been converted into RenderView for testing Canny edge detection
-                //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
-                // let toonFilter = CannyEdgeDetection()
-                //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
-                // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
-            } else {
-                self.dismiss(animated: true, completion: nil)
-            }
 
-        }
-    }*/
-    
     func getCoordinates(from chars: [Character]) -> Array<Int>? {
         var coordinates: Array<Int> = []
         let topLeftX = Array("top_left_")
