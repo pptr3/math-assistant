@@ -4,15 +4,13 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
-    @IBOutlet weak var text2: UITextView!
-    @IBOutlet weak var text: UITextView!
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
     
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
@@ -21,10 +19,10 @@ class PhotoViewController: UIViewController {
                 self.segmentMathOperations(for: filteredImage)
                 self.correctOperations()
                 
-               
+                
                 //self.displayResult()
             }
-           
+            
         }
     }
     
@@ -32,11 +30,11 @@ class PhotoViewController: UIViewController {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
-      /* Try closing or opening or just erosion (for delete border paper) operations
-        self.dilation = Dilation()
-        imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-        self.dilation = Dilation()
-        imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
+        /* Try closing or opening or just erosion (for delete border paper) operations
+         self.dilation = Dilation()
+         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
+         self.dilation = Dilation()
+         imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
         self.takenPhoto = imageToProcess
         return imageToProcess
     }
@@ -53,19 +51,12 @@ class PhotoViewController: UIViewController {
         for index in self.mathOperations.indices {
             let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
-                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                    if index == 0 {
-                        self.text.text = result.debugDescription
-                    } else {
-                        self.text2.text = result.debugDescription
-                    }
-                
-                }
-           
-            if index == 1 {
-                break
+            MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                   print(result.debugDescription)
             }
-         
+            
+            
+            
         }
     }
     
@@ -83,6 +74,7 @@ class PhotoViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
+    
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
@@ -91,14 +83,14 @@ class PhotoViewController: UIViewController {
         MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  image, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
             //let chars = Array(result.debugDescription)
             /*if let coordinates = self.getCoordinates(from: chars) {
-                //here is commented beacause self.imageView as been converted into RenderView for testing Canny edge detection
-                //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
-                // let toonFilter = CannyEdgeDetection()
-                //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
-                // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
-            } else {
-                self.dismiss(animated: true, completion: nil)
-            }*/
+             //here is commented beacause self.imageView as been converted into RenderView for testing Canny edge detection
+             //self.imageView.image = self.textToImage(drawText: ".", inImage: availableImage, atPoint: CGPoint(x: coordinates[0], y: coordinates[1]))
+             // let toonFilter = CannyEdgeDetection()
+             //let filteredImage = self.imageView.image?.filterWithOperation(toonFilter)
+             // self.imageView.image? = self.imageView.image!.filterWithOperation(toonFilter)
+             } else {
+             self.dismiss(animated: true, completion: nil)
+             }*/
             return result.debugDescription
         }
         return "nono"
@@ -262,7 +254,7 @@ class PhotoViewController: UIViewController {
         }
         return sums2
     }
-
+    
     
     func deleteBlackNoise(for sums: Array<CGPoint>, withBlackNoise blackNoise: Int, andWhiteNoise whiteNoise: Int, noiseForFirstElement first: Int) -> Array<CGPoint>? {
         var sums2 = sums
@@ -456,7 +448,7 @@ class PhotoViewController: UIViewController {
             return lhs.color == rhs.color
         }
     }
-
+    
     func getCoordinates(from chars: [Character]) -> Array<Int>? {
         var coordinates: Array<Int> = []
         let topLeftX = Array("top_left_")

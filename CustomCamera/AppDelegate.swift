@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Setup api keys
+        // Override point for customization after application launch.
         MathpixClient.setApiKeys(appId: "mathpix", appKey: "139ee4b61be2e4abcfb1238d9eb99902")
         MathpixClient.debug = true
         return true
