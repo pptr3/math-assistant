@@ -4,12 +4,21 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
+    
+    
+   
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
-    
+    var currentIndex: Int!
+    var obs: String! {
+        didSet {
+            self.mathOperations[self.currentIndex].operation = self.obs
+            self.obs = ""
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,14 +26,16 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                self.correctOperations()
-                
-                
+                //self.correctOperations()
                 //self.displayResult()
+                
             }
             
         }
     }
+    
+   
+    
     
     func filterImage(_ image: UIImage) -> UIImage? {
         var imageToProcess = image
@@ -49,14 +60,15 @@ class PhotoViewController: UIViewController {
     // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
     func correctOperations() {
         for index in self.mathOperations.indices {
-            let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+            if self.mathOperations[index].operation == "undefined" {
+                self.currentIndex = index
+                let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
-            MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                   print(result.debugDescription)
+                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                    self.obs = String(result.debugDescription)
+                }
+                break
             }
-            
-            
-            
         }
     }
     
@@ -66,14 +78,21 @@ class PhotoViewController: UIViewController {
         return nil
     }
     
+    @IBAction func next(_ sender: Any) {
+        self.correctOperations()
+    }
     @IBAction func savePhoto(_ sender: Any) {
+        for index in self.mathOperations.indices {
+            print("----------------------------------")
+            print(self.mathOperations[index].operation)
+            print("----------------------------------")
+        }
         guard let imageToSave = self.takenPhoto else {
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
         dismiss(animated: true, completion: nil)
     }
-    
     
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
@@ -561,6 +580,17 @@ public class CannyEdgeDetection: OperationGroup {
         
         self.configureGroup{input, output in
             input --> self.luminance --> self.gaussianBlur --> self.directionalSobel --> self.directionalNonMaximumSuppression --> self.weakPixelInclusion --> output
+        }
+    }
+}
+
+class CustomLabel: UILabel {
+    
+    override var text: String? {
+        didSet {
+            if let text = text {
+                print("changed")
+            }
         }
     }
 }
