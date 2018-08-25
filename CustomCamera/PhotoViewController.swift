@@ -9,6 +9,7 @@ class PhotoViewController: UIViewController {
    
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
+    var originalImage: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
@@ -29,6 +30,7 @@ class PhotoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
+            self.originalImage = availableImage
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
@@ -96,6 +98,16 @@ class PhotoViewController: UIViewController {
                 
             }
         }
+       var img = self.imageView.image!
+        for index in self.mathOperations.indices {
+            if self.mathOperations[index].isCorrect {
+                img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
+            } else {
+                self.imageView.image! = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
+            }
+        }
+        
+        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
         
     }
     
@@ -278,7 +290,7 @@ class PhotoViewController: UIViewController {
             }
         }
         //check if first element is a white-noise. Noise for first element -> 5
-        if sums[0].y == 1.0, sums[0].x < 5 {
+        if sums[0].y == 1.0, sums[0].x < 5 { //TODO: this 5 should be in the signature ad "first element noise"
             sums[0].y = 0.0
         }
         return sums
@@ -581,7 +593,7 @@ class PhotoViewController: UIViewController {
     
     func textToImage(drawText text: NSString, inImage image: UIImage, atPoint point: CGPoint) -> UIImage {
         let textColor = UIColor.blue
-        let textFont = UIFont(name: "Helvetica Bold", size: 50)!
+        let textFont = UIFont(name: "Helvetica Bold", size: 30)!
         let scale = UIScreen.main.scale
         UIGraphicsBeginImageContextWithOptions(image.size, false, scale)
         let textFontAttributes = [
