@@ -13,10 +13,11 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
-    var obs: String! {
+    var observerOperation: String! {
         didSet {
-            self.mathOperations[self.currentIndex].operation = self.obs
-            self.obs = ""
+            self.mathOperations[self.currentIndex].operation = self.observerOperation
+            self.observerOperation = ""
+            self.correctOperations()
         }
     }
     
@@ -26,7 +27,7 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                //self.correctOperations()
+                self.correctOperations()
                 //self.displayResult()
                 
             }
@@ -65,7 +66,7 @@ class PhotoViewController: UIViewController {
                 let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
                 MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
-                    self.obs = String(result.debugDescription)
+                    self.observerOperation = String(result.debugDescription)
                 }
                 break
             }
@@ -78,9 +79,7 @@ class PhotoViewController: UIViewController {
         return nil
     }
     
-    @IBAction func next(_ sender: Any) {
-        self.correctOperations()
-    }
+    
     @IBAction func savePhoto(_ sender: Any) {
         for index in self.mathOperations.indices {
             print("----------------------------------")
