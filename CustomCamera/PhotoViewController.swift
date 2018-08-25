@@ -82,6 +82,20 @@ class PhotoViewController: UIViewController {
     //Take Mathpix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations.
     func correctOperations() {
         self.extractOperations()
+        for index in self.mathOperations.indices {
+            if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation)) {
+                let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
+                let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
+                print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
+                if result == Double(stringWithMathematicalOperation[1]) {
+                    self.mathOperations[index].isCorrect = true
+                } else {
+                    self.mathOperations[index].isCorrect = false
+                }
+                print(self.mathOperations[index].isCorrect)
+                
+            }
+        }
         
     }
     
@@ -91,7 +105,7 @@ class PhotoViewController: UIViewController {
             let chars = Array(self.mathOperations[index].operation)
             let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") ?? "no value"
             self.mathOperations[index].operation = replacedOperation
-            print(self.mathOperations[index].operation)
+            //print(self.mathOperations[index].operation)
             //print("----------------------------------")
         }
     }
@@ -484,6 +498,26 @@ class PhotoViewController: UIViewController {
         }
     }
     
+    func getOperation(from chars: [Character]) -> [String]? {
+        var operantionAndResult = [String]()
+        var operation = ""
+        var flag = false
+        for index in chars.indices {
+            if chars[index] != "=" && flag == false {
+                operation.append(chars[index])
+            } else if chars[index] == "=" {
+                flag = true
+                operantionAndResult.append(operation)
+                operation = ""
+            } else {
+                operation.append(chars[index])
+            }
+        }
+        operantionAndResult.append(operation)
+        return operantionAndResult
+    }
+
+
     func getWorlframOperation(from chars: [Character]) -> String? {
         let topLeftX = Array("wolfram")
         var topIndex = 0
