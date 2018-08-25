@@ -13,11 +13,18 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
+    var howManyOperationsHasBeenProcessed = 0
     var observerOperation: String! {
         didSet {
             self.mathOperations[self.currentIndex].operation = self.observerOperation
             self.observerOperation = ""
-            self.correctOperations()
+            if self.howManyOperationsHasBeenProcessed < self.mathOperations.count {
+                self.getResultFromMathpix()
+            }
+            if self.howManyOperationsHasBeenProcessed == self.mathOperations.count {
+                self.correctOperations()
+                
+            }
         }
     }
     
@@ -27,7 +34,8 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                self.correctOperations()
+                self.getResultFromMathpix()
+                //self.correctOperations()
                 //self.displayResult()
                 
             }
@@ -36,7 +44,6 @@ class PhotoViewController: UIViewController {
     }
     
    
-    
     
     func filterImage(_ image: UIImage) -> UIImage? {
         var imageToProcess = image
@@ -58,10 +65,11 @@ class PhotoViewController: UIViewController {
         }
     }
     
-    // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Then take MathPix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations in array.
-    func correctOperations() {
+    // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Mathpix result is stored in "operation" field for each math operation.
+    func getResultFromMathpix() {
         for index in self.mathOperations.indices {
             if self.mathOperations[index].operation == "undefined" {
+                self.howManyOperationsHasBeenProcessed += 1
                 self.currentIndex = index
                 let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
@@ -73,6 +81,17 @@ class PhotoViewController: UIViewController {
         }
     }
     
+    //Take Mathpix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations.
+    func correctOperations() {
+        for index in self.mathOperations.indices {
+            print("----------------------------------")
+            let chars = Array(self.mathOperations[index].operation)
+            let replacedOperation = self.getWorlframOperation(from: chars) ?? "no value"
+            print(replacedOperation)
+            print("----------------------------------")
+           //.replacingOccurrences(of: " ", with: "") ?? "no value"
+         }
+    }
     
     // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
     func displayResult() -> UIImage? {
@@ -81,11 +100,6 @@ class PhotoViewController: UIViewController {
     
     
     @IBAction func savePhoto(_ sender: Any) {
-        for index in self.mathOperations.indices {
-            print("----------------------------------")
-            print(self.mathOperations[index].operation)
-            print("----------------------------------")
-        }
         guard let imageToSave = self.takenPhoto else {
             return
         }
@@ -467,12 +481,10 @@ class PhotoViewController: UIViewController {
         }
     }
     
-    func getCoordinates(from chars: [Character]) -> Array<Int>? {
-        var coordinates: Array<Int> = []
-        let topLeftX = Array("top_left_")
+    func getWorlframOperation(from chars: [Character]) -> String? {
+        let topLeftX = Array("wolfram")
         var topIndex = 0
         var count = 0
-        var found = 0
         for index in chars.indices {
             if chars[index] == topLeftX[topIndex] {
                 var index2 = index
@@ -485,12 +497,8 @@ class PhotoViewController: UIViewController {
                 }
                 topIndex = 0
                 if count == topLeftX.count {
-                    if let coordinate = self.getNumber(from: chars, from: index2+5) { //"+5" is where the number starts
-                        coordinates.append(coordinate)
-                    }
-                    found += 1
-                    if found == 2 {
-                        return coordinates
+                    if let coordinate = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
+                        return coordinate
                     }
                 }
                 count = 0
@@ -499,18 +507,18 @@ class PhotoViewController: UIViewController {
         return nil
     }
     
-    private func getNumber(from chars: [Character], from index: Int ) -> Int? {
+    private func getNumber(from chars: [Character], from index: Int ) -> String? {
         var myStringNumber = ""
         var i = index
         for _ in chars.indices {
-            if chars[i] != ";" {
+            if chars[i] != "\"" {
                 myStringNumber.append(chars[i])
                 i += 1
             } else {
                 break
             }
         }
-        return Int(myStringNumber) ?? nil
+        return myStringNumber
     }
     
     func imageRotatedByDegrees(oldImage: UIImage, deg degrees: CGFloat) -> UIImage {
@@ -583,13 +591,3 @@ public class CannyEdgeDetection: OperationGroup {
     }
 }
 
-class CustomLabel: UILabel {
-    
-    override var text: String? {
-        didSet {
-            if let text = text {
-                print("changed")
-            }
-        }
-    }
-}
