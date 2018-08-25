@@ -19,11 +19,9 @@ class PhotoViewController: UIViewController {
             self.mathOperations[self.currentIndex].operation = self.observerOperation
             self.observerOperation = ""
             if self.howManyOperationsHasBeenProcessed < self.mathOperations.count {
-                self.getResultFromMathpix()
-            }
-            if self.howManyOperationsHasBeenProcessed == self.mathOperations.count {
+                self.setResultFromMathpix()
+            } else if self.howManyOperationsHasBeenProcessed == self.mathOperations.count {
                 self.correctOperations()
-                
             }
         }
     }
@@ -34,7 +32,7 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
                 self.segmentMathOperations(for: filteredImage)
-                self.getResultFromMathpix()
+                self.setResultFromMathpix()
                 //self.correctOperations()
                 //self.displayResult()
                 
@@ -66,7 +64,7 @@ class PhotoViewController: UIViewController {
     }
     
     // correctOperations: for each math operation in array, take its coordinates, crop the operation and send it to MathPix. Mathpix result is stored in "operation" field for each math operation.
-    func getResultFromMathpix() {
+    func setResultFromMathpix() {
         for index in self.mathOperations.indices {
             if self.mathOperations[index].operation == "undefined" {
                 self.howManyOperationsHasBeenProcessed += 1
@@ -83,14 +81,19 @@ class PhotoViewController: UIViewController {
     
     //Take Mathpix result and, through substrings methods, compute the correctess. Then modify "isCorrect" instance variable for each math operations.
     func correctOperations() {
+        self.extractOperations()
+        
+    }
+    
+    func extractOperations() {
         for index in self.mathOperations.indices {
-            print("----------------------------------")
+            //print("----------------------------------")
             let chars = Array(self.mathOperations[index].operation)
-            let replacedOperation = self.getWorlframOperation(from: chars) ?? "no value"
-            print(replacedOperation)
-            print("----------------------------------")
-           //.replacingOccurrences(of: " ", with: "") ?? "no value"
-         }
+            let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") ?? "no value"
+            self.mathOperations[index].operation = replacedOperation
+            print(self.mathOperations[index].operation)
+            //print("----------------------------------")
+        }
     }
     
     // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
