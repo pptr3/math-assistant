@@ -71,9 +71,9 @@ class PhotoViewController: UIViewController {
             if self.mathOperations[index].operation == "undefined" {
                 self.howManyOperationsHasBeenProcessed += 1
                 self.currentIndex = index
-                let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+                let croppedImage = self.cropImage(image: self.imageView.image!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
-                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage!, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
                     self.observerOperation = String(result.debugDescription)
                 }
                 break
@@ -194,8 +194,8 @@ class PhotoViewController: UIViewController {
         
         //test cropping single operations
         for index in self.mathOperations.indices {
-            let croppedImage = self.cropImage(for: self.imageView.image!, with: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
-            UIImageWriteToSavedPhotosAlbum(self.imageRotatedByDegrees(oldImage: croppedImage, deg: CGFloat(90.0)), nil, nil, nil)
+            let croppedImage = self.cropImage(image: self.imageView.image!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+            UIImageWriteToSavedPhotosAlbum(self.imageRotatedByDegrees(oldImage: croppedImage!, deg: CGFloat(90.0)), nil, nil, nil)
             dismiss(animated: true, completion: nil)
         }
         return outputImage
@@ -608,10 +608,14 @@ class PhotoViewController: UIViewController {
         return newImage!
     }
     
-    func cropImage(for image: UIImage, with bounds: CGRect) -> UIImage {
-        let cgImage = image.cgImage?.cropping(to: bounds)
-        let image = UIImage(cgImage: cgImage!)
-        return image
+    func cropImage(image:UIImage, cropRect:CGRect) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(cropRect.size, false, image.scale)
+        let origin = CGPoint(x: cropRect.origin.x * CGFloat(-1), y: cropRect.origin.y * CGFloat(-1))
+        image.draw(at: origin)
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext();
+        
+        return result
     }
     
 }
@@ -640,3 +644,12 @@ public class CannyEdgeDetection: OperationGroup {
     }
 }
 
+public class BrightnessAdjustment: BasicOperation {
+    public var brightness:Float = 0.0 { didSet { uniformSettings["brightness"] = brightness } }
+    
+    public init() {
+        super.init(fragmentShader:BrightnessFragmentShader, numberOfInputs:1)
+        
+        ({brightness = 0.0})()
+    }
+}
