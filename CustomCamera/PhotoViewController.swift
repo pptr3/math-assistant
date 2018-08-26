@@ -12,6 +12,7 @@ class PhotoViewController: UIViewController {
     var originalImage: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
+    var bright: BrightnessAdjustment!
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var howManyOperationsHasBeenProcessed = 0
@@ -31,15 +32,23 @@ class PhotoViewController: UIViewController {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
             self.originalImage = availableImage
+            
+            //trick
+            var imageToProcess = self.originalImage!
+            self.bright = BrightnessAdjustment()
+            imageToProcess = self.originalImage!.filterWithOperation(self.bright)
+            self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
+            
+            
             self.imageView.image = availableImage
             if let filteredImage = self.filterImage(availableImage) {
-                self.segmentMathOperations(for: filteredImage)
-                self.setResultFromMathpix()
-                //self.correctOperations()
-                //self.displayResult()
-                
-            }
+               
             
+                self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: filteredImage, deg: CGFloat(90.0)))
+                UIImageWriteToSavedPhotosAlbum(self.takenPhoto!, nil, nil, nil)
+                dismiss(animated: true, completion: nil)
+                self.setResultFromMathpix()
+            }
         }
     }
     
@@ -71,9 +80,9 @@ class PhotoViewController: UIViewController {
             if self.mathOperations[index].operation == "undefined" {
                 self.howManyOperationsHasBeenProcessed += 1
                 self.currentIndex = index
-                let croppedImage = self.cropImage(image: self.imageView.image!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
+                let croppedImage = self.cropImage(image: self.originalImage!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
             
-                MathpixClient.recognize(image: self.imageRotatedByDegrees(oldImage:  croppedImage!, deg: CGFloat(90.0)), outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
+                MathpixClient.recognize(image: croppedImage!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
                     self.observerOperation = String(result.debugDescription)
                 }
                 break
@@ -98,27 +107,23 @@ class PhotoViewController: UIViewController {
                 
             }
         }
-       var img = self.imageView.image!
+       var img = self.originalImage!
         for index in self.mathOperations.indices {
             if self.mathOperations[index].isCorrect {
                 img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
             } else {
-                self.imageView.image! = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
+                img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
             }
         }
-        
-        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+        self.imageView.image = img
         
     }
     
     func extractOperations() {
         for index in self.mathOperations.indices {
-            //print("----------------------------------")
             let chars = Array(self.mathOperations[index].operation)
             let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") ?? "no value"
             self.mathOperations[index].operation = replacedOperation
-            //print(self.mathOperations[index].operation)
-            //print("----------------------------------")
         }
     }
     
@@ -129,7 +134,7 @@ class PhotoViewController: UIViewController {
     
     
     @IBAction func savePhoto(_ sender: Any) {
-        guard let imageToSave = self.takenPhoto else {
+        guard let imageToSave = self.imageView.image else {
             return
         }
         UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
