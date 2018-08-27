@@ -32,19 +32,10 @@ class PhotoViewController: UIViewController {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
             self.originalImage = availableImage
-            
-            //trick
-            var imageToProcess = self.originalImage!
-            self.bright = BrightnessAdjustment()
-            imageToProcess = self.originalImage!.filterWithOperation(self.bright)
-            self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
-            
-            
+            self.brightnessAdjustmentFilter()
             self.imageView.image = availableImage
-            if let filteredImage = self.filterImage(availableImage) {
-               
-            
-                self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: filteredImage, deg: CGFloat(90.0)))
+            if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
+                self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 UIImageWriteToSavedPhotosAlbum(self.takenPhoto!, nil, nil, nil)
                 dismiss(animated: true, completion: nil)
                 self.setResultFromMathpix()
@@ -52,9 +43,14 @@ class PhotoViewController: UIViewController {
         }
     }
     
-   
+    func brightnessAdjustmentFilter() {
+        var imageToProcess = self.originalImage!
+        self.bright = BrightnessAdjustment()
+        imageToProcess = self.originalImage!.filterWithOperation(self.bright)
+        self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
+    }
     
-    func filterImage(_ image: UIImage) -> UIImage? {
+    func cannyEdgeDetectionFilter(_ image: UIImage) -> UIImage? {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
