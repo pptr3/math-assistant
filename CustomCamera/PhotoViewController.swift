@@ -98,7 +98,7 @@ class PhotoViewController: UIViewController {
                 let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
                 let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
                 print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
-                if result == Double(stringWithMathematicalOperation[1]) {
+                if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
                     self.mathOperations[index].isCorrect = true
                 } else {
                     self.mathOperations[index].isCorrect = false
@@ -107,16 +107,7 @@ class PhotoViewController: UIViewController {
                 
             }
         }
-       var img = self.originalImage!
-        for index in self.mathOperations.indices {
-            if self.mathOperations[index].isCorrect {
-                img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
-            } else {
-                img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
-            }
-        }
-        self.imageView.image = img
-        
+        self.displayResult()
     }
     
     func extractOperations() {
@@ -128,8 +119,16 @@ class PhotoViewController: UIViewController {
     }
     
     // displayResult: depending on type of operation, compute the coordinate where to display the sign of correctness or not.
-    func displayResult() -> UIImage? {
-        return nil
+    func displayResult() {
+        var img = self.originalImage!
+        for index in self.mathOperations.indices {
+            if self.mathOperations[index].isCorrect {
+                img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
+            } else {
+                img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
+            }
+        }
+        self.imageView.image = img
     }
     
     
