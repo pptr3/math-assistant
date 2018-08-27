@@ -69,7 +69,6 @@ class PhotoViewController: UIViewController {
         }
     }
     
-   
     private func setResultFromMathpix() {
         for index in self.mathOperations.indices {
             if self.mathOperations[index].operation == "undefined" {
@@ -88,10 +87,13 @@ class PhotoViewController: UIViewController {
     
     private func correctOperations() {
         self.extractOperations()
+        //TODO: if the value is "no value" don't evaluate it
         for index in self.mathOperations.indices {
             if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation)) {
+                print(stringWithMathematicalOperation)
                 let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
                 let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
+                print(result)
                 print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
                 if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
                     self.mathOperations[index].isCorrect = true
@@ -113,6 +115,59 @@ class PhotoViewController: UIViewController {
         }
     }
     
+    private func getOperation(from chars: [Character]) -> [String]? {
+        var operantionAndResult = [String]()
+        var operation = ""
+        var flag = false
+        for index in chars.indices {
+            if chars[index] != "=" && flag == false {
+                operation.append(chars[index])
+            } else if chars[index] == "=" {
+                flag = true
+                operantionAndResult.append(operation)
+                operation = ""
+            } else {
+                operation.append(chars[index])
+            }
+        }
+        operantionAndResult.append(operation)
+        let replaceArray = self.replaceTimesAndDivs(in: operantionAndResult)
+        return replaceArray
+    }
+    
+    func replaceTimesAndDivs(in result: [String]) -> [String] {
+        var operation = Array(result.first!)
+        for index in 0 ..< operation.count - 2 {
+            if operation[index] == "\\" && operation[index + 1] == "\\" { //check if operation containf "\\" characters
+                if operation[index + 2] == "t" { //check if the operation is "times"
+                    operation[index] = "*"
+                    var newOperation = String(operation)
+                    newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "t", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "i", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "m", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "e", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "s", with: "")
+                    var newArray = [String]()
+                    newArray.append(newOperation)
+                    newArray.append(result[1])
+                    return newArray
+                } else if operation[index + 2] == "d" {
+                    operation[index] = "/"
+                    var newOperation = String(operation)
+                    newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "d", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "i", with: "")
+                    newOperation = newOperation.replacingOccurrences(of: "v", with: "")
+                    var newArray = [String]()
+                    newArray.append(newOperation)
+                    newArray.append(result[1])
+                    return newArray
+                }
+            }
+        }
+        return result
+    }
     
     private func displayResult() {
         var img = self.originalImage!
@@ -124,6 +179,46 @@ class PhotoViewController: UIViewController {
             }
         }
         self.imageView.image = img
+    }
+    
+    private func getWorlframOperation(from chars: [Character]) -> String? {
+        let topLeftX = Array("wolfram")
+        var topIndex = 0
+        var count = 0
+        for index in chars.indices {
+            if chars[index] == topLeftX[topIndex] {
+                var index2 = index
+                for _ in topLeftX.indices {
+                    if chars[index2] == topLeftX[topIndex] {
+                        count += 1
+                        index2 += 1
+                        topIndex += 1
+                    }
+                }
+                topIndex = 0
+                if count == topLeftX.count {
+                    if let coordinate = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
+                        return coordinate
+                    }
+                }
+                count = 0
+            }
+        }
+        return nil
+    }
+    
+    private func getNumber(from chars: [Character], from index: Int ) -> String? {
+        var myStringNumber = ""
+        var i = index
+        for _ in chars.indices {
+            if chars[i] != "\"" {
+                myStringNumber.append(chars[i])
+                i += 1
+            } else {
+                break
+            }
+        }
+        return myStringNumber
     }
     
     
@@ -430,65 +525,6 @@ class PhotoViewController: UIViewController {
         }
     }
     
-    private func getOperation(from chars: [Character]) -> [String]? {
-        var operantionAndResult = [String]()
-        var operation = ""
-        var flag = false
-        for index in chars.indices {
-            if chars[index] != "=" && flag == false {
-                operation.append(chars[index])
-            } else if chars[index] == "=" {
-                flag = true
-                operantionAndResult.append(operation)
-                operation = ""
-            } else {
-                operation.append(chars[index])
-            }
-        }
-        operantionAndResult.append(operation)
-        return operantionAndResult
-    }
-
-
-    private func getWorlframOperation(from chars: [Character]) -> String? {
-        let topLeftX = Array("wolfram")
-        var topIndex = 0
-        var count = 0
-        for index in chars.indices {
-            if chars[index] == topLeftX[topIndex] {
-                var index2 = index
-                for _ in topLeftX.indices {
-                    if chars[index2] == topLeftX[topIndex] {
-                        count += 1
-                        index2 += 1
-                        topIndex += 1
-                    }
-                }
-                topIndex = 0
-                if count == topLeftX.count {
-                    if let coordinate = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
-                        return coordinate
-                    }
-                }
-                count = 0
-            }
-        }
-        return nil
-    }
-    
-    private func getNumber(from chars: [Character], from index: Int ) -> String? {
-        var myStringNumber = ""
-        var i = index
-        for _ in chars.indices {
-            if chars[i] != "\"" {
-                myStringNumber.append(chars[i])
-                i += 1
-            } else {
-                break
-            }
-        }
-        return myStringNumber
-    }
     
     private func imageRotatedByDegrees(oldImage: UIImage, deg degrees: CGFloat) -> UIImage {
         //Calculate the size of the rotated view's containing box for our drawing space
