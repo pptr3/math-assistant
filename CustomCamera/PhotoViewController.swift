@@ -268,13 +268,6 @@ class PhotoViewController: UIViewController {
         }
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        
-        //test cropping single operations
-        for index in self.mathOperations.indices {
-            let croppedImage = self.cropImage(image: self.imageView.image!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
-            UIImageWriteToSavedPhotosAlbum(croppedImage!, nil, nil, nil)
-            dismiss(animated: true, completion: nil)
-        }
         return outputImage
     }
     
@@ -473,7 +466,7 @@ class PhotoViewController: UIViewController {
                 if let sums = self.calculateSum(from: foregrounds2!) {
                     guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return }
                     guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return }
-                    guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5) else { return }
+                    guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 5, noiseForFirstElement: 5) else { return }
                     guard let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise) else { return}
                     self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
                 }
