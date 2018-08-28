@@ -9,7 +9,7 @@
 import Foundation
 
 struct MathOperation {
-    var operation: String
+    var operation: String?
     var width: Int
     var height: Int
     var x: Int
