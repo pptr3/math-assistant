@@ -13,19 +13,32 @@ class PhotoViewController: UIViewController {
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
+    var blackNoiseValueForVeticalGrid = 25
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
+    var rebootVar = false
     var howManyOperationsHasBeenProcessed = 0
     var observerOperation: String! {
         didSet {
-            self.mathOperations[self.currentIndex].operation = self.observerOperation
-            self.observerOperation = ""
-            if self.howManyOperationsHasBeenProcessed < self.mathOperations.count {
-                self.setResultFromMathpix()
-            } else if self.howManyOperationsHasBeenProcessed == self.mathOperations.count {
-                self.correctOperations()
+            if !self.rebootVar {
+                self.mathOperations[self.currentIndex].operation = self.observerOperation
+                self.observerOperation = ""
+                if self.howManyOperationsHasBeenProcessed < self.mathOperations.count {
+                    self.setResultFromMathpix()
+                } else if self.howManyOperationsHasBeenProcessed == self.mathOperations.count {
+                    self.correctOperations()
+                }
             }
         }
+    }
+    
+    func reboot() {
+        self.rebootVar = true
+        self.observerOperation = ""
+        self.howManyOperationsHasBeenProcessed = 0
+        self.mathOperations =  Array<MathOperation>()
+        self.rebootVar = false
+        self.viewDidLoad()
     }
     
     override func viewDidLoad() {
@@ -36,8 +49,6 @@ class PhotoViewController: UIViewController {
             self.imageView.image = availableImage
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
-                UIImageWriteToSavedPhotosAlbum(self.takenPhoto!, nil, nil, nil)
-                dismiss(animated: true, completion: nil)
                 self.setResultFromMathpix()
             }
         }
@@ -59,13 +70,13 @@ class PhotoViewController: UIViewController {
          imageToProcess = imageToProcess.filterWithOperation(self.dilation)
          self.dilation = Dilation()
          imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
-        self.takenPhoto = imageToProcess
+        //self.takenPhoto = imageToProcess
         return imageToProcess
     }
     
     private func segmentMathOperations(for image: UIImage) {
         if let testImg = self.processPixels(in: image) {
-            self.takenPhoto = testImg
+            //self.takenPhoto = testImg
         }
     }
     
@@ -87,31 +98,50 @@ class PhotoViewController: UIViewController {
     
     private func correctOperations() {
         self.extractOperations()
-        //TODO: if the value is "no value" don't evaluate it
+        var savedMathOperation = self.mathOperations
+        self.mathOperations.removeAll(keepingCapacity: false)
+        
+        for index in savedMathOperation.indices {
+            if savedMathOperation[index].operation != "noOperation" {
+                self.mathOperations.append(savedMathOperation[index])
+            }
+        }
+        
         for index in self.mathOperations.indices {
-            if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation)) {
-                print(stringWithMathematicalOperation)
-                let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
-                let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
-                print(result)
-                print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
-                if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
-                    self.mathOperations[index].isCorrect = true
-                } else {
-                    self.mathOperations[index].isCorrect = false
+            let check = Array(self.mathOperations[index].operation)
+            let checkFirstElement = String(check[0])
+            if checkFirstElement.isNumber {
+                if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation)) {
+                    print(stringWithMathematicalOperation)
+                    let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
+                    
+                    let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
+                    print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
+                    if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
+                        self.mathOperations[index].isCorrect = true
+                    } else {
+                        self.mathOperations[index].isCorrect = false
+                    }
+                    
                 }
-                print(self.mathOperations[index].isCorrect)
-                
+            } else {
+                print("index: \(index), \(self.mathOperations[index].operation)")
             }
         }
         self.displayResult()
+        if self.blackNoiseValueForVeticalGrid < 50 {
+            self.blackNoiseValueForVeticalGrid += 10
+            self.reboot()
+        }
+        
     }
     
     private func extractOperations() {
         for index in self.mathOperations.indices {
             let chars = Array(self.mathOperations[index].operation)
-            let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") ?? "no value"
-            self.mathOperations[index].operation = replacedOperation
+            if let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") {
+                self.mathOperations[index].operation = replacedOperation //replacedOperation (a value like: 2+3=5) could be a good value or "noOperation"
+            }
         }
     }
     
@@ -119,6 +149,7 @@ class PhotoViewController: UIViewController {
         var operantionAndResult = [String]()
         var operation = ""
         var flag = false
+
         for index in chars.indices {
             if chars[index] != "=" && flag == false {
                 operation.append(chars[index])
@@ -137,6 +168,9 @@ class PhotoViewController: UIViewController {
     
     func replaceTimesAndDivs(in result: [String]) -> [String] {
         var operation = Array(result.first!)
+        if operation.count <= 2 {
+            return result
+        }
         for index in 0 ..< operation.count - 2 {
             if operation[index] == "\\" && operation[index + 1] == "\\" { //check if operation containf "\\" characters
                 if operation[index + 2] == "t" { //check if the operation is "times"
@@ -197,8 +231,8 @@ class PhotoViewController: UIViewController {
                 }
                 topIndex = 0
                 if count == topLeftX.count {
-                    if let coordinate = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
-                        return coordinate
+                    if let wolframOperation = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
+                        return wolframOperation //wolframOperation (a value like: 2+3=5) could be a good value or "noOperation"
                     }
                 }
                 count = 0
@@ -211,6 +245,9 @@ class PhotoViewController: UIViewController {
         var myStringNumber = ""
         var i = index
         for _ in chars.indices {
+            if i >= chars.count - 1 {
+                return "noOperation"
+            }
             if chars[i] != "\"" {
                 myStringNumber.append(chars[i])
                 i += 1
@@ -231,6 +268,7 @@ class PhotoViewController: UIViewController {
     }
     
     @IBAction func goBack(_ sender: Any) {
+        self.blackNoiseValueForVeticalGrid = 25
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -407,6 +445,36 @@ class PhotoViewController: UIViewController {
         }
         return sums2
     }
+
+    private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
+        guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return nil}
+        guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 10, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
+        let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
+        self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
+        return sums3
+    }
+    
+    
+    
+    private func fireVerticalGrid(for sums3: Array<CGPoint>, in pixelBuffer: UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) {
+        var start = 0
+        var stop = 0
+        for index in 0 ..< sums3.count {
+            if sums3[index].y == 1.0 && start <= height {
+                stop = start + Int(sums3[index].x)
+                let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
+                if let sums = self.calculateSum(from: foregrounds2!) {
+                    guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return }
+                    guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return }
+                    guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForVeticalGrid, andWhiteNoise: 5, noiseForFirstElement: 5) else { return }
+                    guard let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise) else { return}
+                    self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
+                }
+            }
+            start = start + Int(sums3[index].x)
+        }
+    }
     
     private func drawHorizontalLines(for sums3: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) {
         var startDrawing = 0
@@ -442,36 +510,6 @@ class PhotoViewController: UIViewController {
                 
             }
             startDrawing = startDrawing + Int(sums3[index].x)
-        }
-    }
-    
-    private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
-        guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return nil}
-        guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
-        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 10, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
-        let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
-        self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
-        return sums3
-    }
-    
-    
-    
-    private func fireVerticalGrid(for sums3: Array<CGPoint>, in pixelBuffer: UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) {
-        var start = 0
-        var stop = 0
-        for index in 0 ..< sums3.count {
-            if sums3[index].y == 1.0 && start <= height {
-                stop = start + Int(sums3[index].x)
-                let foregrounds2 = self.calculateVerticalForeground(from: pixelBuffer, withWidth: width, from: start, to: stop)
-                if let sums = self.calculateSum(from: foregrounds2!) {
-                    guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10) else { return }
-                    guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return }
-                    guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 5, noiseForFirstElement: 5) else { return }
-                    guard let sums32 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise) else { return}
-                    self.drawVerticalLines(for: sums32, in: pixelBuffer, withWidth: width, from: start, to: stop)
-                }
-            }
-            start = start + Int(sums3[index].x)
         }
     }
     
@@ -600,5 +638,11 @@ public class BrightnessAdjustment: BasicOperation {
         super.init(fragmentShader:BrightnessFragmentShader, numberOfInputs:1)
         
         ({brightness = 0.0})()
+    }
+}
+
+extension String  {
+    var isNumber: Bool {
+        return !isEmpty && rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) == nil
     }
 }
