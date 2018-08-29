@@ -102,45 +102,50 @@ class PhotoViewController: UIViewController {
     
     private func correctOperations() {
         self.extractOperations()
-        var savedMathOperation = self.mathOperations
-        self.mathOperations.removeAll(keepingCapacity: false)
+        //delete nil values in mathOperations
         
-        for index in savedMathOperation.indices {
-            if savedMathOperation[index].operation != "nil" {
-                self.mathOperations.append(savedMathOperation[index])
+        var saveMathOperations = self.mathOperations
+        saveMathOperations.removeAll()
+        for index in self.mathOperations.indices {
+            if self.mathOperations[index].operation != nil {
+                saveMathOperations.append(self.mathOperations[index])
             }
-        } // throws exception beacause the operation is not well formatted
+        }
+        self.mathOperations = saveMathOperations
         
         for index in self.mathOperations.indices {
-            //if self.mathOperations[index].operation != "nil" {
-                if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
-                    let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
-                    let result: Double = exp.expressionValue(with: nil, context: nil) as! Double 
-                    if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
-                        self.mathOperations[index].isCorrect = true
-                    } else {
-                        self.mathOperations[index].isCorrect = false
-                    }
+            if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
+                print(stringWithMathematicalOperation)
+                let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
+                let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
+                print(result)
+                print(Double(stringWithMathematicalOperation[1])!)
+                if result == Double(stringWithMathematicalOperation[1])! { //bug == with Double
+                    self.mathOperations[index].isCorrect = true
+                } else {
+                    self.mathOperations[index].isCorrect = false
                 }
-           // }
+            }
         }
         self.displayResult()
        /* if self.blackNoiseValueForVeticalGrid <= 65 {
             self.blackNoiseValueForVeticalGrid += 20
             self.reboot()
         }*/
-        for index in self.mathOperations.indices {
-          print(self.mathOperations[index].operation)
-        }
+       
         //print(self.blackNoiseValueForVeticalGrid)
         
     }
     
+  
+    
     private func extractOperations() {
         for index in self.mathOperations.indices {
             let chars = Array(self.mathOperations[index].operation!)
-            if let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") {
+            if let replacedOperation = self.getWorlframOperation(from: chars) {
                 self.mathOperations[index].operation = replacedOperation
+            } else {
+                self.mathOperations[index].operation = nil
             }
         }
     }
@@ -205,9 +210,9 @@ class PhotoViewController: UIViewController {
     private func displayResult() {
         var img = self.originalImage!
         for index in self.mathOperations.indices {
-            if self.mathOperations[index].isCorrect, self.mathOperations[index].operation != nil {
+            if self.mathOperations[index].isCorrect {
                 img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
-            } else if self.mathOperations[index].operation != nil {
+            } else{
                 img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
             }
         }
@@ -230,8 +235,8 @@ class PhotoViewController: UIViewController {
                 }
                 topIndex = 0
                 if count == topLeftX.count {
-                    if let wolframOperation = self.getNumber(from: chars, from: index2+4) { //"+4" is where the number starts
-                        return wolframOperation //wolframOperation (a value like: 2+3=5) could be a good value or "noOperation"
+                    if let wolframOperation = self.getNumber(from: chars, from: index2+3) { //"+3" is where the result starts
+                       return wolframOperation
                     }
                 }
                 count = 0
@@ -241,8 +246,11 @@ class PhotoViewController: UIViewController {
     }
     
     private func getNumber(from chars: [Character], from index: Int ) -> String? {
+        if chars[index] != "\"" {
+            return nil
+        }
         var myStringNumber = ""
-        var i = index
+        var i = index + 1
         for _ in chars.indices {
             if i >= chars.count - 1 {
                 return nil
@@ -254,8 +262,42 @@ class PhotoViewController: UIViewController {
                 break
             }
         }
-        return myStringNumber
+        
+        
+        if checkIfOperationIsWellFormatted(for: myStringNumber.replacingOccurrences(of: " ", with: "")) {
+            myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
+            return myStringNumber
+        }
+        return nil
     }
+    
+    
+    func checkIfOperationIsWellFormatted(for operation: String) -> Bool {
+        if operation.isEmpty || operation.count < 5 {
+            return false
+        }
+        
+        var charsOperation = Array(operation)
+        
+        if !String(charsOperation[0]).isNumber || !String(charsOperation[charsOperation.count - 1]).isNumber {
+            return false
+        }
+        var equals = false
+        var operators = false
+        for index in 1..<operation.count - 1 {
+            //TODO: check if there are two operators or equals in a row. Check if each operator/equals has on left and right a number.
+            
+            if !operators, (charsOperation[index] == "+" || charsOperation[index] == "-" || charsOperation[index] == "*" || charsOperation[index] == "/") {
+                operators = true
+            }
+            
+            if !equals, charsOperation[index] == "=" {
+                equals = true
+            }
+        }
+        return equals && operators
+    }
+    
     
     
     @IBAction func savePhoto(_ sender: Any) {
