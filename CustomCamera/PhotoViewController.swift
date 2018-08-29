@@ -106,29 +106,23 @@ class PhotoViewController: UIViewController {
         self.mathOperations.removeAll(keepingCapacity: false)
         
         for index in savedMathOperation.indices {
-            if savedMathOperation[index].operation != nil {
+            if savedMathOperation[index].operation != "nil" {
                 self.mathOperations.append(savedMathOperation[index])
             }
-        }
+        } // throws exception beacause the operation is not well formatted
         
         for index in self.mathOperations.indices {
-            let check = Array(self.mathOperations[index].operation!)
-            let checkFirstElement = String(check[0])
-            if checkFirstElement.isNumber {
+            //if self.mathOperations[index].operation != "nil" {
                 if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
-                 //   print(stringWithMathematicalOperation)
                     let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
-                    let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
-                //    print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
+                    let result: Double = exp.expressionValue(with: nil, context: nil) as! Double 
                     if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
                         self.mathOperations[index].isCorrect = true
                     } else {
                         self.mathOperations[index].isCorrect = false
                     }
                 }
-            } else {
-                //print("index: \(index), \(self.mathOperations[index].operation!)")
-            }
+           // }
         }
         self.displayResult()
        /* if self.blackNoiseValueForVeticalGrid <= 65 {
@@ -146,7 +140,7 @@ class PhotoViewController: UIViewController {
         for index in self.mathOperations.indices {
             let chars = Array(self.mathOperations[index].operation!)
             if let replacedOperation = self.getWorlframOperation(from: chars)?.replacingOccurrences(of: " ", with: "") {
-                self.mathOperations[index].operation = replacedOperation //replacedOperation (a value like: 2+3=5) could be a good value or "noOperation"
+                self.mathOperations[index].operation = replacedOperation
             }
         }
     }
@@ -174,35 +168,34 @@ class PhotoViewController: UIViewController {
     
     func replaceTimesAndDivs(in result: [String]) -> [String] {
         var operation = Array(result.first!)
-        if operation.count <= 2 {
-            return result
-        }
-        for index in 0 ..< operation.count - 2 {
-            if operation[index] == "\\" && operation[index + 1] == "\\" { //check if operation containf "\\" characters
-                if operation[index + 2] == "t" { //check if the operation is "times"
-                    operation[index] = "*"
-                    var newOperation = String(operation)
-                    newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "t", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "i", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "m", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "e", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "s", with: "")
-                    var newArray = [String]()
-                    newArray.append(newOperation)
-                    newArray.append(result[1])
-                    return newArray
-                } else if operation[index + 2] == "d" {
-                    operation[index] = "/"
-                    var newOperation = String(operation)
-                    newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "d", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "i", with: "")
-                    newOperation = newOperation.replacingOccurrences(of: "v", with: "")
-                    var newArray = [String]()
-                    newArray.append(newOperation)
-                    newArray.append(result[1])
-                    return newArray
+        if operation.count > 2 {
+            for index in 0 ..< operation.count - 2 {
+                if operation[index] == "\\" && operation[index + 1] == "\\" { //check if operation containf "\\" characters
+                    if operation[index + 2] == "t" { //check if the operation is "times"
+                        operation[index] = "*"
+                        var newOperation = String(operation)
+                        newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "t", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "i", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "m", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "e", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "s", with: "")
+                        var newArray = [String]()
+                        newArray.append(newOperation)
+                        newArray.append(result[1])
+                        return newArray
+                    } else if operation[index + 2] == "d" {
+                        operation[index] = "/"
+                        var newOperation = String(operation)
+                        newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "d", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "i", with: "")
+                        newOperation = newOperation.replacingOccurrences(of: "v", with: "")
+                        var newArray = [String]()
+                        newArray.append(newOperation)
+                        newArray.append(result[1])
+                        return newArray
+                    }
                 }
             }
         }
@@ -212,9 +205,9 @@ class PhotoViewController: UIViewController {
     private func displayResult() {
         var img = self.originalImage!
         for index in self.mathOperations.indices {
-            if self.mathOperations[index].isCorrect {
+            if self.mathOperations[index].isCorrect, self.mathOperations[index].operation != nil {
                 img = self.textToImage(drawText: "✅", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
-            } else {
+            } else if self.mathOperations[index].operation != nil {
                 img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
             }
         }
