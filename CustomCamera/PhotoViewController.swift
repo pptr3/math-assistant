@@ -128,12 +128,14 @@ class PhotoViewController: UIViewController {
             }
         }
         self.displayResult()
-       /* if self.blackNoiseValueForVeticalGrid <= 65 {
+        //if there is a consistent number of nil in mathOperantions.operations instance property, do a reboot.
+        //TODO: need to change reboot function. Now it perfom the algorithm from scratch, but need to perform an image with only the interested image that has nil in mathOperantions.operations; do not consider the operation that has been successful elaborated.
+        if self.blackNoiseValueForVeticalGrid <= 65 {
             self.blackNoiseValueForVeticalGrid += 20
             self.reboot()
-        }*/
+        }
        
-        //print(self.blackNoiseValueForVeticalGrid)
+        print(self.blackNoiseValueForVeticalGrid)
         
     }
     
