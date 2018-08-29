@@ -106,7 +106,7 @@ class PhotoViewController: UIViewController {
         self.mathOperations.removeAll(keepingCapacity: false)
         
         for index in savedMathOperation.indices {
-            if savedMathOperation[index].operation != "noOperation" && savedMathOperation[index].operation != nil {
+            if savedMathOperation[index].operation != nil {
                 self.mathOperations.append(savedMathOperation[index])
             }
         }
@@ -116,10 +116,10 @@ class PhotoViewController: UIViewController {
             let checkFirstElement = String(check[0])
             if checkFirstElement.isNumber {
                 if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
-                    print(stringWithMathematicalOperation)
+                 //   print(stringWithMathematicalOperation)
                     let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
                     let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
-                    print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
+                //    print("op: \(stringWithMathematicalOperation.first!), res: \(result), second: \(stringWithMathematicalOperation[1])")
                     if result == Double(stringWithMathematicalOperation[1]) { //bug == with Double
                         self.mathOperations[index].isCorrect = true
                     } else {
@@ -127,15 +127,18 @@ class PhotoViewController: UIViewController {
                     }
                 }
             } else {
-                print("index: \(index), \(self.mathOperations[index].operation!)")
+                //print("index: \(index), \(self.mathOperations[index].operation!)")
             }
         }
         self.displayResult()
-        if self.blackNoiseValueForVeticalGrid <= 65 {
+       /* if self.blackNoiseValueForVeticalGrid <= 65 {
             self.blackNoiseValueForVeticalGrid += 20
             self.reboot()
+        }*/
+        for index in self.mathOperations.indices {
+          print(self.mathOperations[index].operation)
         }
-        print(self.blackNoiseValueForVeticalGrid)
+        //print(self.blackNoiseValueForVeticalGrid)
         
     }
     
@@ -249,7 +252,7 @@ class PhotoViewController: UIViewController {
         var i = index
         for _ in chars.indices {
             if i >= chars.count - 1 {
-                return "noOperation"
+                return nil
             }
             if chars[i] != "\"" {
                 myStringNumber.append(chars[i])
