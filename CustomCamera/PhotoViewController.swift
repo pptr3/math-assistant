@@ -6,7 +6,8 @@ class PhotoViewController: UIViewController {
 
     
     
-   
+    //TODO: bug in operations with letters like "2+y=4"
+    
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var originalImage: UIImage?
@@ -14,7 +15,7 @@ class PhotoViewController: UIViewController {
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
-    var blackNoiseValueForVeticalGrid = 25
+    var blackNoiseValueForVeticalGrid = 45
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -51,7 +52,7 @@ class PhotoViewController: UIViewController {
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
-                UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
+               // UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
             }
             
             
@@ -130,10 +131,10 @@ class PhotoViewController: UIViewController {
         self.displayResult()
         //if there is a consistent number of nil in mathOperantions.operations instance property, do a reboot.
         //TODO: need to change reboot function. Now it perfom the algorithm from scratch, but need to perform an image with only the interested image that has nil in mathOperantions.operations; do not consider the operation that has been successful elaborated.
-        if self.blackNoiseValueForVeticalGrid <= 65 {
+        /*if self.blackNoiseValueForVeticalGrid <= 65 {
             self.blackNoiseValueForVeticalGrid += 20
             self.reboot()
-        }
+        }*/
        
         print(self.blackNoiseValueForVeticalGrid)
         
@@ -169,44 +170,7 @@ class PhotoViewController: UIViewController {
             }
         }
         operantionAndResult.append(operation)
-        let replaceArray = self.replaceTimesAndDivs(in: operantionAndResult)
-        return replaceArray
-    }
-    
-    func replaceTimesAndDivs(in result: [String]) -> [String] {
-        var operation = Array(result.first!)
-        if operation.count > 2 {
-            for index in 0 ..< operation.count - 2 {
-                if operation[index] == "\\" && operation[index + 1] == "\\" { //check if operation containf "\\" characters
-                    if operation[index + 2] == "t" { //check if the operation is "times"
-                        operation[index] = "*"
-                        var newOperation = String(operation)
-                        newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "t", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "i", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "m", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "e", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "s", with: "")
-                        var newArray = [String]()
-                        newArray.append(newOperation)
-                        newArray.append(result[1])
-                        return newArray
-                    } else if operation[index + 2] == "d" {
-                        operation[index] = "/"
-                        var newOperation = String(operation)
-                        newOperation = newOperation.replacingOccurrences(of: "\\", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "d", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "i", with: "")
-                        newOperation = newOperation.replacingOccurrences(of: "v", with: "")
-                        var newArray = [String]()
-                        newArray.append(newOperation)
-                        newArray.append(result[1])
-                        return newArray
-                    }
-                }
-            }
-        }
-        return result
+        return operantionAndResult
     }
     
     private func displayResult() {
@@ -264,8 +228,21 @@ class PhotoViewController: UIViewController {
                 break
             }
         }
+        print("mystring:\(myStringNumber)")
+        if myStringNumber.contains("div") {
+            myStringNumber = myStringNumber.replacingOccurrences(of: "div", with: "/")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+            print("mystring inside div:\(myStringNumber)")
+        }
         
-        
+        if myStringNumber.contains("times") {
+            myStringNumber = myStringNumber.replacingOccurrences(of: "times", with: "/")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+            print("mystring inside times:\(myStringNumber)")
+        }
+        print("mystring outside:\(myStringNumber)")
         if checkIfOperationIsWellFormatted(for: myStringNumber.replacingOccurrences(of: " ", with: "")) {
             myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
             return myStringNumber
@@ -306,8 +283,8 @@ class PhotoViewController: UIViewController {
         guard let imageToSave = self.imageView.image else {
             return
         }
-        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        dismiss(animated: true, completion: nil)
+      //  UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
+        //dismiss(animated: true, completion: nil)
     }
     
     @IBAction func goBack(_ sender: Any) {
@@ -687,5 +664,9 @@ public class BrightnessAdjustment: BasicOperation {
 extension String  {
     var isNumber: Bool {
         return !isEmpty && rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) == nil
+    }
+    
+    func contains(_ find: String) -> Bool{
+        return self.range(of: find) != nil
     }
 }
