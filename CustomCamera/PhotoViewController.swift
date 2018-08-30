@@ -52,7 +52,7 @@ class PhotoViewController: UIViewController {
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
-               // UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
+                UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
             }
             
             
@@ -228,21 +228,81 @@ class PhotoViewController: UIViewController {
                 break
             }
         }
-        print("mystring:\(myStringNumber)")
         if myStringNumber.contains("div") {
             myStringNumber = myStringNumber.replacingOccurrences(of: "div", with: "/")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
-            print("mystring inside div:\(myStringNumber)")
         }
         
         if myStringNumber.contains("times") {
-            myStringNumber = myStringNumber.replacingOccurrences(of: "times", with: "/")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "times", with: "*")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
-            print("mystring inside times:\(myStringNumber)")
         }
-        print("mystring outside:\(myStringNumber)")
+        
+        if Array(myStringNumber).first == "{" { //means that is coloumn operation
+            myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "{", with: "")
+            //handle this case: "{{ 127 /},{ 4/408} }"; or "{{ 127 x},{ 4/408} }";
+            if myStringNumber.contains("/") {
+                var charMyStringNumber = Array(myStringNumber)
+                var counterForCurlyBrackets = 0
+                for index in charMyStringNumber.indices {
+                    if charMyStringNumber[index] == "}" {
+                        counterForCurlyBrackets += 1
+                    }
+                    if charMyStringNumber[index] == "/" && counterForCurlyBrackets > 0 {
+                        charMyStringNumber[index] = "="
+                        myStringNumber = String(charMyStringNumber)
+                        break
+                    }
+                }
+            }
+            
+            
+            //check if equals sign is present. If not, add it.
+            if !myStringNumber.contains("=") {
+                var charMyStringNumber = Array(myStringNumber)
+                var counterForCurlyBrackets = 0
+                for index in charMyStringNumber.indices {
+                    if charMyStringNumber[index] == "}" && counterForCurlyBrackets < 2 {
+                        counterForCurlyBrackets += 1
+                    } else if counterForCurlyBrackets == 2 {
+                        charMyStringNumber[index] = "="
+                        myStringNumber = String(charMyStringNumber)
+                        break
+                    }
+                }
+            }
+            
+            //check if at least one operator is present. If not, means that the operator is a "-",.
+            if !myStringNumber.containsIgnoringCase("x") && !myStringNumber.containsIgnoringCase("+") && !myStringNumber.containsIgnoringCase("-") && !myStringNumber.containsIgnoringCase("/") && !myStringNumber.containsIgnoringCase("*") {
+                var charMyStringNumber = Array(myStringNumber)
+                for index in charMyStringNumber.indices {
+                    if charMyStringNumber[index] == "}" {
+                        if charMyStringNumber[index - 1] == "=" { //this is to avoid case like this: "{{ 100 =},{ 50 =},{ 50 }}";
+                            charMyStringNumber[index - 1] = "-"
+                            myStringNumber = String(charMyStringNumber)
+                            break
+                        } else {
+                            charMyStringNumber[index] = "-"
+                            myStringNumber = String(charMyStringNumber)
+                            break
+                        }
+                    }
+                }
+            }
+            
+            
+            myStringNumber = myStringNumber.replacingOccurrences(of: "}", with: "")
+            myStringNumber = myStringNumber.replacingOccurrences(of: ",", with: "")
+            //TODO: substitude "x" with "*". To test "-" operator since it's often omitted.
+            if myStringNumber.contains("x") {
+                myStringNumber = myStringNumber.replacingOccurrences(of: "x", with: "*")
+            }
+        }
+
+        
         if checkIfOperationIsWellFormatted(for: myStringNumber.replacingOccurrences(of: " ", with: "")) {
             myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
             return myStringNumber
@@ -283,8 +343,8 @@ class PhotoViewController: UIViewController {
         guard let imageToSave = self.imageView.image else {
             return
         }
-      //  UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        //dismiss(animated: true, completion: nil)
+        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
+        dismiss(animated: true, completion: nil)
     }
     
     @IBAction func goBack(_ sender: Any) {
@@ -469,7 +529,7 @@ class PhotoViewController: UIViewController {
     private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
         guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 10) else { return nil}
         guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
-        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 10, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
         self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
@@ -668,5 +728,9 @@ extension String  {
     
     func contains(_ find: String) -> Bool{
         return self.range(of: find) != nil
+    }
+    
+    func containsIgnoringCase(_ find: String) -> Bool{
+        return self.range(of: find, options: .caseInsensitive) != nil
     }
 }
