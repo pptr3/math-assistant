@@ -1,1 +1,2 @@
-#ar-mathpix
+# ar-mathpix
+![example](https://github.com/Pptr95/ar-mathpix/blob/develop/video.gif)
