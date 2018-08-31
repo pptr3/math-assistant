@@ -4,6 +4,7 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
+    var activityIndicator:UIActivityIndicatorView = UIActivityIndicatorView()
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var originalImage: UIImage?
@@ -30,7 +31,8 @@ class PhotoViewController: UIViewController {
             }
         }
     }
-    
+   
+  
     func reboot() {
         self.rebootVar = true
         self.observerOperation = ""
@@ -43,9 +45,19 @@ class PhotoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if let availableImage = self.takenPhoto {
+            //set up indicator
+            DispatchQueue.main.async {
+                self.activityIndicator.center = self.view.center
+                self.activityIndicator.hidesWhenStopped = true
+                self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+                self.view.addSubview(self.activityIndicator)
+                self.activityIndicator.startAnimating()
+                UIApplication.shared.beginIgnoringInteractionEvents()
+            }
+            
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
-            self.imageView.image = availableImage
+        //    self.imageView.image = availableImage
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
@@ -132,7 +144,13 @@ class PhotoViewController: UIViewController {
             self.blackNoiseValueForVeticalGrid += 20
             self.reboot()
         }*/
-       
+        
+       //stop indicator animation
+        DispatchQueue.main.async {
+            self.activityIndicator.stopAnimating()
+            UIApplication.shared.endIgnoringInteractionEvents()
+        }
+        
         print(self.blackNoiseValueForVeticalGrid)
         
     }
