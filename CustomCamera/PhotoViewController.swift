@@ -12,7 +12,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
-    var blackNoiseValueForHorizontalGrid = 30
+    var blackNoiseValueForHorizontalGrid = 20
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -67,7 +67,7 @@ class PhotoViewController: UIViewController {
         var imageToProcess = image
         self.canny = CannyEdgeDetection()
         imageToProcess = image.filterWithOperation(self.canny)
-        /* Try closing or opening or just erosion (for delete border paper) operations
+        /* Try closing or opening or just erosion (for delete border paper) operations. Test bluring
          self.dilation = Dilation()
          imageToProcess = imageToProcess.filterWithOperation(self.dilation)
          self.dilation = Dilation()
@@ -539,7 +539,7 @@ class PhotoViewController: UIViewController {
     private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
         guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 10) else { return nil}
         guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
-        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForVeticalGrid, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForHorizontalGrid, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
         self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
