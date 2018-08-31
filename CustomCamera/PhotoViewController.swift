@@ -4,10 +4,6 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
 
-    
-    
-    //TODO: bug in operations with letters like "2+y=4"
-    
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var originalImage: UIImage?
@@ -16,6 +12,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
+    var blackNoiseValueForHorizontalGrid = 30
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -240,10 +237,20 @@ class PhotoViewController: UIViewController {
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
         }
         
+        if myStringNumber.contains("x") {
+            myStringNumber = myStringNumber.replacingOccurrences(of: "x", with: "*")
+        }
+        
+        //check if string operation contains alphabet letters.
+        if myStringNumber.containsIgnoringCase("y") || myStringNumber.containsIgnoringCase("a") || myStringNumber.containsIgnoringCase("t") {
+            return nil
+        }
+        
         if Array(myStringNumber).first == "{" { //means that is coloumn operation
             myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: "{", with: "")
-            //handle this case: "{{ 127 /},{ 4/408} }"; or "{{ 127 x},{ 4/408} }";
+            
+            //handle this case: "{{ 127 /},{ 4/408} }"; or "{{ 127 *},{ 4/408} }";
             if myStringNumber.contains("/") {
                 var charMyStringNumber = Array(myStringNumber)
                 var counterForCurlyBrackets = 0
@@ -293,13 +300,16 @@ class PhotoViewController: UIViewController {
                 }
             }
             
+            if myStringNumber.contains("(") {
+               myStringNumber = myStringNumber.replacingOccurrences(of: "(", with: "")
+            }
+            
+            if myStringNumber.contains(")") {
+                myStringNumber = myStringNumber.replacingOccurrences(of: ")", with: "")
+            }
             
             myStringNumber = myStringNumber.replacingOccurrences(of: "}", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: ",", with: "")
-            //TODO: substitude "x" with "*". To test "-" operator since it's often omitted.
-            if myStringNumber.contains("x") {
-                myStringNumber = myStringNumber.replacingOccurrences(of: "x", with: "*")
-            }
         }
 
         
@@ -529,7 +539,7 @@ class PhotoViewController: UIViewController {
     private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
         guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 10) else { return nil}
         guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
-        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: 25, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForVeticalGrid, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
         self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
