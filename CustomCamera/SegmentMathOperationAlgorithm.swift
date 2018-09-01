@@ -48,7 +48,6 @@ class SegmentMathOperationAlgorithm {
     
     func run() {
         if let availableImage = self.takenPhoto {
-            
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
             //    self.imageView.image = availableImage
@@ -184,6 +183,7 @@ class SegmentMathOperationAlgorithm {
             }
         }
         self.imageView = img
+        print("ALGO FINISH")
         UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
     }
     
