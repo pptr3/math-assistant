@@ -10,6 +10,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
     private var hitTestResult :ARHitTestResult!
     let configuration = ARWorldTrackingConfiguration()
     var startingPosition: SCNNode?
+    var algo = SegmentMathOperationAlgorithm(withVertical: 45, withHorizontal: 20)
     
     
     override func viewDidLoad() {
@@ -60,9 +61,11 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         let pixelBuffer = currentFrame.capturedImage
         let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
         var capturedImage : UIImage = self.convert(cmage: ciimage)
+        //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
        // capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
-        let algo = SegmentMathOperationAlgorithm(for: capturedImage, withVertical: 45, withHorizontal: 20)
-        algo.run()
+        //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
+        self.algo.run(for: capturedImage)
+       
     }
     
     func addItem(hitTestResult: ARHitTestResult) {

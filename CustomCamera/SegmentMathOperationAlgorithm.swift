@@ -40,13 +40,14 @@ class SegmentMathOperationAlgorithm {
         }
     }
     
-    init(for image: UIImage, withVertical horizontal: Int, withHorizontal vertical: Int) {
-        self.takenPhoto = image
+    init(withVertical horizontal: Int, withHorizontal vertical: Int) {
+       // UIImageWriteToSavedPhotosAlbum(self.takenPhoto!, nil, nil, nil)
         self.blackNoiseValueForHorizontalGrid = horizontal
         self.blackNoiseValueForVeticalGrid = vertical
     }
     
-    func run() {
+    func run(for image: UIImage) {
+        self.takenPhoto = image
         if let availableImage = self.takenPhoto {
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
@@ -56,6 +57,8 @@ class SegmentMathOperationAlgorithm {
                 self.setResultFromMathpix()
                 UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
             }
+        } else {
+            print("IMAGE IS NOT READY")
         }
     }
     
@@ -184,7 +187,7 @@ class SegmentMathOperationAlgorithm {
         }
         self.imageView = img
         print("ALGO FINISH")
-        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+        //UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
     }
     
     private func getWorlframOperation(from chars: [Character]) -> String? {
