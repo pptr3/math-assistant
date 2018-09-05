@@ -11,7 +11,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
     let configuration = ARWorldTrackingConfiguration()
     var startingPosition: SCNNode?
     var isStartingPositionPlaced = false
-    var algo = SegmentMathOperationAlgorithm(withVertical: 45, withHorizontal: 20)
+    var algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45) //vertical ad horizontal are switched
     
     
     override func viewDidLoad() {
@@ -34,41 +34,46 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         self.sceneView.addGestureRecognizer(tapGestureRecognizer)
     }
     
+    //First time the screen is tapped, an anchor is placed. The others time, photo frame is exracted and algorithm runs.
     @objc func tappedForPlaceAndDistance(sender: UITapGestureRecognizer) {
-        if self.isStartingPositionPlaced {
-            return
+        if !self.isStartingPositionPlaced {
+            let sceneView = sender.view as! ARSCNView
+            let tapLocation = sender.location(in: sceneView)
+            //this line check if the location where you tapped (tapLocation) matches to an horizontal plane surface
+            let hitTest = sceneView.hitTest(tapLocation, types: .existingPlaneUsingExtent)
+            if !hitTest.isEmpty {
+                addItem(hitTestResult: hitTest.first!)
+                self.isStartingPositionPlaced = true
+            }
+        } else {
+            //image saved when screen is tapped. This should be perfomed when a button is clicked
+            let sceneView2 = sender.view as! ARSCNView
+            let touchLocation = self.sceneView.center
+            guard let currentFrame = sceneView2.session.currentFrame else {
+                return
+            }
+            let hitTestResults = sceneView2.hitTest(touchLocation, types: .featurePoint)
+            if hitTestResults.isEmpty {
+                return
+            }
+            guard let hitTestResult = hitTestResults.first else {
+                return
+            }
+            self.hitTestResult = hitTestResult
+            let pixelBuffer = currentFrame.capturedImage
+            let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
+            var capturedImage : UIImage = self.convertCIImageToCGImage(cmage: ciimage)
+            //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
+            //capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
+           // UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
+            DispatchQueue.main.async {
+                self.algo.run2()
+                //self.algo.run(for: capturedImage)
+                self.algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45)
+            }
+            //self.algo.run(for: capturedImage)
+            //self.algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45)
         }
-        let sceneView = sender.view as! ARSCNView
-        let tapLocation = sender.location(in: sceneView)
-        //this line check if the location where you tapped (tapLocation) matches to an horizontal plane surface
-        let hitTest = sceneView.hitTest(tapLocation, types: .existingPlaneUsingExtent)
-        if !hitTest.isEmpty {
-            addItem(hitTestResult: hitTest.first!)
-            self.isStartingPositionPlaced = true
-        }
-      
-        
-        //image saved when screen is tapped. This should be perfomed when a button is clicked
-        let sceneView2 = sender.view as! ARSCNView
-        let touchLocation = self.sceneView.center
-        guard let currentFrame = sceneView2.session.currentFrame else {
-            return
-        }
-        let hitTestResults = sceneView2.hitTest(touchLocation, types: .featurePoint)
-        if hitTestResults.isEmpty {
-            return
-        }
-        guard let hitTestResult = hitTestResults.first else {
-            return
-        }
-        self.hitTestResult = hitTestResult
-        let pixelBuffer = currentFrame.capturedImage
-        let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        var capturedImage : UIImage = self.convert(cmage: ciimage)
-        //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
-       // capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
-        //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
-       // self.algo.run(for: capturedImage)
     }
     
     func addItem(hitTestResult: ARHitTestResult) {
@@ -121,7 +126,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
    
     
     // Convert CIImage to CGImage
-    func convert(cmage:CIImage) -> UIImage {
+    func convertCIImageToCGImage(cmage:CIImage) -> UIImage {
         let context:CIContext = CIContext.init(options: nil)
         let cgImage:CGImage = context.createCGImage(cmage, from: cmage.extent)!
         let image:UIImage = UIImage.init(cgImage: cgImage)

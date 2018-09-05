@@ -13,9 +13,7 @@ import GPUImage
 class SegmentMathOperationAlgorithm {
 
     var imageView: UIImage?
-    var takenPhoto: UIImage?
     var originalImage: UIImage?
-    var filterImage: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
@@ -40,24 +38,22 @@ class SegmentMathOperationAlgorithm {
     }
     
     init(withVertical horizontal: Int, withHorizontal vertical: Int) {
-       // UIImageWriteToSavedPhotosAlbum(self.takenPhoto!, nil, nil, nil)
         self.blackNoiseValueForHorizontalGrid = horizontal
         self.blackNoiseValueForVeticalGrid = vertical
     }
     
-    func run(for image: UIImage) {
-        self.takenPhoto = image
-        if let availableImage = self.takenPhoto {
+    func run2() {
+        print("I'M RUNNING222222222")
+    }
+    
+    func run(for image: UIImage?) {
+        if let availableImage = image {
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
-            //    self.imageView.image = availableImage
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
-                UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
             }
-        } else {
-            print("IMAGE IS NOT READY")
         }
     }
     
@@ -92,7 +88,7 @@ class SegmentMathOperationAlgorithm {
     
     private func segmentMathOperations(for image: UIImage) {
         if let processedImage = self.processPixels(in: image) {
-            self.filterImage = processedImage
+            UIImageWriteToSavedPhotosAlbum(processedImage, nil, nil, nil)
         }
     }
     
@@ -127,11 +123,11 @@ class SegmentMathOperationAlgorithm {
         
         for index in self.mathOperations.indices {
             if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
-                print(stringWithMathematicalOperation)
+               // print(stringWithMathematicalOperation)
                 let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
                 let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
-                print(result)
-                print(Double(stringWithMathematicalOperation[1])!)
+                //print(result)
+                //print(Double(stringWithMathematicalOperation[1])!)
                 if result == Double(stringWithMathematicalOperation[1])! { //bug == with Double
                     self.mathOperations[index].isCorrect = true
                 } else {
@@ -184,9 +180,9 @@ class SegmentMathOperationAlgorithm {
                 img = self.textToImage(drawText: "❌", inImage: img, atPoint: CGPoint(x: self.mathOperations[index].x, y: self.mathOperations[index].y))
             }
         }
-        self.imageView = img
+       // self.reboot()
         print("ALGO FINISH")
-        //UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
+        UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
     }
     
     private func getWorlframOperation(from chars: [Character]) -> String? {
