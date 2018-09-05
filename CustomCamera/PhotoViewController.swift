@@ -10,6 +10,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
     private var hitTestResult :ARHitTestResult!
     let configuration = ARWorldTrackingConfiguration()
     var startingPosition: SCNNode?
+    var isStartingPositionPlaced = false
     var algo = SegmentMathOperationAlgorithm(withVertical: 45, withHorizontal: 20)
     
     
@@ -19,7 +20,6 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         self.configuration.planeDetection = .horizontal
         self.sceneView.session.run(configuration)
         self.sceneView.delegate = self
-        //self.registerGestureRecognizers()
         self.registerGestureRecognizerForPlaneAndDistance()
         self.sceneView.autoenablesDefaultLighting = true
     }
@@ -35,14 +35,18 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
     }
     
     @objc func tappedForPlaceAndDistance(sender: UITapGestureRecognizer) {
+        if self.isStartingPositionPlaced {
+            return
+        }
         let sceneView = sender.view as! ARSCNView
         let tapLocation = sender.location(in: sceneView)
         //this line check if the location where you tapped (tapLocation) matches to an horizontal plane surface
         let hitTest = sceneView.hitTest(tapLocation, types: .existingPlaneUsingExtent)
         if !hitTest.isEmpty {
             addItem(hitTestResult: hitTest.first!)
+            self.isStartingPositionPlaced = true
         }
-        print("tap")
+      
         
         //image saved when screen is tapped. This should be perfomed when a button is clicked
         let sceneView2 = sender.view as! ARSCNView
@@ -64,8 +68,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
        // capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
         //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
-        self.algo.run(for: capturedImage)
-       
+       // self.algo.run(for: capturedImage)
     }
     
     func addItem(hitTestResult: ARHitTestResult) {
@@ -75,11 +78,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         self.startingPosition = node
         node.position = SCNVector3(thirdCol.x, thirdCol.y, thirdCol.z)
         self.sceneView.scene.rootNode.addChildNode(node)
-        
-       
-        
     }
-    
     
     //this function is triggered everytime an anchor is placed (which means that a new plane has been detected)
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
@@ -119,34 +118,6 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
         let max = node.boundingBox.max
         node.pivot = SCNMatrix4MakeTranslation(min.x + (max.x - min.x)/2, min.y + (max.y - min.y)/2, min.z + (max.z - min.z)/2)
     }
-    
-    //second part
-    func registerGestureRecognizers() {
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapped))
-        self.sceneView.addGestureRecognizer(tapGestureRecognizer)
-    }
-    
-    @objc func tapped(recognizer :UIGestureRecognizer) {
-        let sceneView = recognizer.view as! ARSCNView
-        let touchLocation = self.sceneView.center
-        guard let currentFrame = sceneView.session.currentFrame else {
-            return
-        }
-        let hitTestResults = sceneView.hitTest(touchLocation, types: .featurePoint)
-        if hitTestResults.isEmpty {
-            return
-        }
-        guard let hitTestResult = hitTestResults.first else {
-            return
-        }
-        self.hitTestResult = hitTestResult
-        let pixelBuffer = currentFrame.capturedImage
-        let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
-        var capturedImage : UIImage = self.convert(cmage: ciimage)
-        capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
-        UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
-    }
-    
    
     
     // Convert CIImage to CGImage

@@ -11,8 +11,7 @@ import MathpixClient
 import GPUImage
 
 class SegmentMathOperationAlgorithm {
-    
-   
+
     var imageView: UIImage?
     var takenPhoto: UIImage?
     var originalImage: UIImage?
