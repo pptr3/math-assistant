@@ -13,7 +13,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
-    var blackNoiseValueForHorizontalGrid = 20
+    var blackNoiseValueForHorizontalGrid = 10
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -376,7 +376,6 @@ class PhotoViewController: UIViewController {
     }
     
     @IBAction func goBack(_ sender: Any) {
-        self.blackNoiseValueForVeticalGrid = 25
         self.dismiss(animated: true, completion: nil)
     }
     
