@@ -63,7 +63,7 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
             let pixelBuffer = currentFrame.capturedImage
             let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
             var capturedImage : UIImage = self.convertCIImageToCGImage(cmage: ciimage)
-            //UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
+            UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
             //capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
            // UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
             DispatchQueue.main.async {

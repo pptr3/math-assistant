@@ -12,7 +12,7 @@
         <!--Photo View Controller-->
         <scene sceneID="5a4-Uv-13Z">
             <objects>
-                <viewController id="df0-fe-c32" customClass="PhotoViewController" customModule="CustomCamera" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="PhotoVC" id="df0-fe-c32" customClass="PhotoViewController" customModule="CustomCamera" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="5XG-0j-gGE"/>
                         <viewControllerLayoutGuide type="bottom" id="P6r-2a-c92"/>
@@ -43,6 +43,33 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vXG-93-v0Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1364" y="4.9475262368815596"/>
+        </scene>
+        <!--Second View Controller-->
+        <scene sceneID="2oK-PC-r8f">
+            <objects>
+                <viewController storyboardIdentifier="SecondVC" id="Aa5-jz-fDi" customClass="SecondViewController" customModule="CustomCamera" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="fIp-FF-BIi"/>
+                        <viewControllerLayoutGuide type="bottom" id="LTM-zW-RiA"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="4U7-mo-YIU">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7wP-DU-Llj">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                    <connections>
+                        <outlet property="takenPhoto" destination="7wP-DU-Llj" id="TLE-XT-9lX"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="a88-mk-eXy" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2184.8000000000002" y="4.9475262368815596"/>
         </scene>
     </scenes>
 </document>

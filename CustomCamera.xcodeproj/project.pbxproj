@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2F0D63532141539F007C0354 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0D63522141539F007C0354 /* SecondViewController.swift */; };
 		2F769807213AE2FB00E1B813 /* SegmentMathOperationAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F769806213AE2FB00E1B813 /* SegmentMathOperationAlgorithm.swift */; };
 		2FB65098212F5169006E4317 /* MathOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB65097212F5169006E4317 /* MathOperation.swift */; };
 		85618EF24F51787FADF8C076 /* Pods_CustomCamera.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7754E8447E766F9A6B072269 /* Pods_CustomCamera.framework */; };
@@ -56,6 +57,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2F0D63522141539F007C0354 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		2F769806213AE2FB00E1B813 /* SegmentMathOperationAlgorithm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentMathOperationAlgorithm.swift; sourceTree = "<group>"; };
 		2FB65097212F5169006E4317 /* MathOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathOperation.swift; sourceTree = "<group>"; };
 		2FCD769A213986D9008A6E72 /* GPUImage.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GPUImage.xcodeproj; path = ../../GPUImage2/framework/GPUImage.xcodeproj; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				2F769806213AE2FB00E1B813 /* SegmentMathOperationAlgorithm.swift */,
 				2FB65097212F5169006E4317 /* MathOperation.swift */,
 				9E18F9991E37658A00EBA699 /* PhotoViewController.swift */,
+				2F0D63522141539F007C0354 /* SecondViewController.swift */,
 				9E18F98B1E3764F200EBA699 /* Main.storyboard */,
 				9E18F98E1E3764F200EBA699 /* Assets.xcassets */,
 				9E18F9901E3764F200EBA699 /* LaunchScreen.storyboard */,
@@ -304,6 +307,7 @@
 				2FB65098212F5169006E4317 /* MathOperation.swift in Sources */,
 				9E18F9881E3764F200EBA699 /* AppDelegate.swift in Sources */,
 				9E18F99A1E37658A00EBA699 /* PhotoViewController.swift in Sources */,
+				2F0D63532141539F007C0354 /* SecondViewController.swift in Sources */,
 				2F769807213AE2FB00E1B813 /* SegmentMathOperationAlgorithm.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
