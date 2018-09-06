@@ -63,16 +63,25 @@ class PhotoViewController: UIViewController, UICollectionViewDelegate, ARSCNView
             let pixelBuffer = currentFrame.capturedImage
             let ciimage : CIImage = CIImage(cvPixelBuffer: pixelBuffer)
             var capturedImage : UIImage = self.convertCIImageToCGImage(cmage: ciimage)
+            
+            let secondVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "SecondVC") as! SecondViewController
+            
+            secondVC.takenPhoto = capturedImage
+            
+            DispatchQueue.main.async {
+                self.present(secondVC, animated: true, completion: nil)
+            }
+            
+           /* UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
+            capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
             UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
-            //capturedImage = self.imageRotatedByDegrees(oldImage: capturedImage, deg: CGFloat(90.0))
-           // UIImageWriteToSavedPhotosAlbum(capturedImage, nil, nil, nil)
             DispatchQueue.main.async {
                 self.algo.run2()
                 //self.algo.run(for: capturedImage)
                 self.algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45)
             }
-            //self.algo.run(for: capturedImage)
-            //self.algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45)
+            self.algo.run(for: capturedImage)
+            self.algo = SegmentMathOperationAlgorithm(withVertical: 20, withHorizontal: 45)*/
         }
     }
     

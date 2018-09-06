@@ -45,18 +45,18 @@
             <point key="canvasLocation" x="1364" y="4.9475262368815596"/>
         </scene>
         <!--Second View Controller-->
-        <scene sceneID="2oK-PC-r8f">
+        <scene sceneID="w0l-Zg-Pas">
             <objects>
-                <viewController storyboardIdentifier="SecondVC" id="Aa5-jz-fDi" customClass="SecondViewController" customModule="CustomCamera" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SecondVC" id="kyI-pW-imM" customClass="SecondViewController" customModule="CustomCamera" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="fIp-FF-BIi"/>
-                        <viewControllerLayoutGuide type="bottom" id="LTM-zW-RiA"/>
+                        <viewControllerLayoutGuide type="top" id="9EF-tF-naV"/>
+                        <viewControllerLayoutGuide type="bottom" id="Abx-WZ-udf"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="4U7-mo-YIU">
+                    <view key="view" contentMode="scaleToFill" id="yKT-Fm-4hR">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7wP-DU-Llj">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="w0D-16-m9p">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
@@ -64,12 +64,12 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </view>
                     <connections>
-                        <outlet property="takenPhoto" destination="7wP-DU-Llj" id="TLE-XT-9lX"/>
+                        <outlet property="image" destination="w0D-16-m9p" id="bPn-fl-8sY"/>
                     </connections>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="a88-mk-eXy" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="jtq-Vc-w0Q" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2184.8000000000002" y="4.9475262368815596"/>
+            <point key="canvasLocation" x="2359.1999999999998" y="4.9475262368815596"/>
         </scene>
     </scenes>
 </document>

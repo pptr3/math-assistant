@@ -10,11 +10,10 @@ import UIKit
 
 class SecondViewController: UIViewController {
 
-    @IBOutlet weak var takenPhoto: UIImageView!
+    @IBOutlet weak var image: UIImageView!
+    var takenPhoto: UIImage?
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        self.image.image = self.takenPhoto
     }
-   
 }
