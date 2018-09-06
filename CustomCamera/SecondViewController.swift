@@ -22,7 +22,7 @@ class SecondViewController: UIViewController {
         var dilation: Dilation!
         var bright: BrightnessAdjustment!
         var blackNoiseValueForVeticalGrid = 45
-        var blackNoiseValueForHorizontalGrid = 10
+        var blackNoiseValueForHorizontalGrid = 20
         var mathOperations =  Array<MathOperation>()
         var currentIndex: Int!
         var rebootVar = false
@@ -53,7 +53,7 @@ class SecondViewController: UIViewController {
         
         override func viewDidLoad() {
             super.viewDidLoad()
-            if let availableImage = self.takenPhoto {
+            /*if let availableImage = self.takenPhoto {
                 //set up indicator
                 DispatchQueue.main.async {
                     self.activityIndicator.center = self.view.center
@@ -66,14 +66,35 @@ class SecondViewController: UIViewController {
                 
                 self.originalImage = availableImage
                 self.brightnessAdjustmentFilter()
-                //    self.imageView.image = availableImage
                 if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                     self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                     self.setResultFromMathpix()
                     UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
                 }
+            }*/
+            
+            if let available = self.takenPhoto {
+                DispatchQueue.main.async {
+                    self.activityIndicator.center = self.view.center
+                    self.activityIndicator.hidesWhenStopped = true
+                    self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+                    self.view.addSubview(self.activityIndicator)
+                    self.activityIndicator.startAnimating()
+                    UIApplication.shared.beginIgnoringInteractionEvents()
+                }
                 
+               
                 
+                self.bright = BrightnessAdjustment()
+                self.image.image = available.filterWithOperation(self.bright)
+                
+               
+                
+                //stop indicator animation
+                DispatchQueue.main.async {
+                    self.activityIndicator.stopAnimating()
+                    UIApplication.shared.endIgnoringInteractionEvents()
+                }
             }
         }
         
@@ -88,12 +109,6 @@ class SecondViewController: UIViewController {
             var imageToProcess = image
             self.canny = CannyEdgeDetection()
             imageToProcess = image.filterWithOperation(self.canny)
-            /* Try closing or opening or just erosion (for delete border paper) operations. Test bluring
-             self.dilation = Dilation()
-             imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-             self.dilation = Dilation()
-             imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
-            //self.takenPhoto = imageToProcess
             return imageToProcess
         }
         
@@ -147,13 +162,7 @@ class SecondViewController: UIViewController {
                 }
             }
             self.displayResult()
-            //if there is a consistent number of nil in mathOperantions.operations instance property, do a reboot.
-            //TODO: need to change reboot function. Now it perfom the algorithm from scratch, but need to perform an image with only the interested image that has nil in mathOperantions.operations; do not consider the operation that has been successful elaborated.
-            /*if self.blackNoiseValueForVeticalGrid <= 65 {
-             self.blackNoiseValueForVeticalGrid += 20
-             self.reboot()
-             }*/
-            
+          
             //stop indicator animation
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
@@ -163,9 +172,7 @@ class SecondViewController: UIViewController {
             print(self.blackNoiseValueForVeticalGrid)
             
         }
-        
-        
-        
+    
         private func extractOperations() {
             for index in self.mathOperations.indices {
                 let chars = Array(self.mathOperations[index].operation!)
@@ -348,7 +355,7 @@ class SecondViewController: UIViewController {
         }
         
         
-        func checkIfOperationIsWellFormatted(for operation: String) -> Bool {
+       private func checkIfOperationIsWellFormatted(for operation: String) -> Bool {
             if operation.isEmpty || operation.count < 5 {
                 return false
             }
@@ -375,19 +382,15 @@ class SecondViewController: UIViewController {
         }
         
         
+    
+    @IBAction func backButton(_ sender: Any) {
+        let photoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "PhotoVC") as! PhotoViewController
         
-     /*   @IBAction func savePhoto(_ sender: Any) {
-            guard let imageToSave = self.imageView.image else {
-                return
-            }
-            UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-            dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async {
+            self.present(photoVC, animated: true, completion: nil)
         }
-        
-        @IBAction func goBack(_ sender: Any) {
-            self.dismiss(animated: true, completion: nil)
-        }
-        */
+    }
+    
     
         private func processPixels(in image: UIImage) -> UIImage? {
             guard let inputCGImage = image.cgImage else {
@@ -754,7 +757,7 @@ class SecondViewController: UIViewController {
         public init() {
             super.init(fragmentShader:BrightnessFragmentShader, numberOfInputs:1)
             
-            ({brightness = 0.0})()
+            ({brightness = 0.2})()
         }
     }
 }

@@ -14,6 +14,7 @@ class SegmentMathOperationAlgorithm {
 
     var imageView: UIImage?
     var originalImage: UIImage?
+    var resultImage: UIImage?
     var canny: CannyEdgeDetection!
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
@@ -42,10 +43,6 @@ class SegmentMathOperationAlgorithm {
         self.blackNoiseValueForVeticalGrid = vertical
     }
     
-    func run2() {
-        print("I'M RUNNING222222222")
-    }
-    
     func run(for image: UIImage?) {
         if let availableImage = image {
             self.originalImage = availableImage
@@ -57,13 +54,12 @@ class SegmentMathOperationAlgorithm {
         }
     }
     
-    private func reboot() {
+    func reboot() {
         self.rebootVar = true
         self.observerOperation = ""
         self.howManyOperationsHasBeenProcessed = 0
-        self.mathOperations =  Array<MathOperation>()
+        self.mathOperations = Array<MathOperation>()
         self.rebootVar = false
-       
     }
     
     private func brightnessAdjustmentFilter() {
@@ -182,6 +178,7 @@ class SegmentMathOperationAlgorithm {
         }
        // self.reboot()
         print("ALGO FINISH")
+        self.resultImage = img
         UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
     }
     
