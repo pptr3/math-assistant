@@ -13,7 +13,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
-    var blackNoiseValueForHorizontalGrid = 10
+    var blackNoiseValueForHorizontalGrid = 22
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -69,23 +69,28 @@ class PhotoViewController: UIViewController {
     }
     
     private func brightnessAdjustmentFilter() {
-        var imageToProcess = self.originalImage!
         self.bright = BrightnessAdjustment()
-        imageToProcess = self.originalImage!.filterWithOperation(self.bright)
-        self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
+        if let imageToProcess: UIImage? = self.originalImage!.filterWithOperation(self.bright) {
+            self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess!, deg: CGFloat(90.0))
+        } else {
+            //TODO: error, retry
+        }
     }
     
     private func cannyEdgeDetectionFilter(_ image: UIImage) -> UIImage? {
-        var imageToProcess = image
         self.canny = CannyEdgeDetection()
-        imageToProcess = image.filterWithOperation(self.canny)
-        /* Try closing or opening or just erosion (for delete border paper) operations. Test bluring
-         self.dilation = Dilation()
-         imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-         self.dilation = Dilation()
-         imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
-        //self.takenPhoto = imageToProcess
-        return imageToProcess
+        if let imageToProcess: UIImage? = image.filterWithOperation(self.canny) {
+            /* Try closing or opening or just erosion (for delete border paper) operations. Test bluring
+             self.dilation = Dilation()
+             imageToProcess = imageToProcess.filterWithOperation(self.dilation)
+             self.dilation = Dilation()
+             imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
+            //self.takenPhoto = imageToProcess
+            return imageToProcess
+        } else {
+            //TODO: error, retry
+            return nil
+        }
     }
     
     private func segmentMathOperations(for image: UIImage) {
@@ -129,11 +134,15 @@ class PhotoViewController: UIViewController {
                 let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
                 let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
                 print(result)
-                print(Double(stringWithMathematicalOperation[1])!)
-                if result == Double(stringWithMathematicalOperation[1])! { //bug == with Double
-                    self.mathOperations[index].isCorrect = true
+                if let val = Double(stringWithMathematicalOperation[1]) {
+                    print(val)
+                    if result == val { //bug == with Double
+                        self.mathOperations[index].isCorrect = true
+                    } else {
+                        self.mathOperations[index].isCorrect = false
+                    }
                 } else {
-                    self.mathOperations[index].isCorrect = false
+                    //TODO: make pop-up appear
                 }
             }
         }
@@ -554,9 +563,9 @@ class PhotoViewController: UIViewController {
     }
 
     private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
-        guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 10) else { return nil}
+        guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 15) else { return nil}
         guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
-        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForHorizontalGrid, andWhiteNoise: 10, noiseForFirstElement: 5) else { return nil }
+        guard let sumsWithoutBlackNoise = self.deleteBlackNoise(for: sums2, withBlackNoise: self.blackNoiseValueForHorizontalGrid, andWhiteNoise: 15, noiseForFirstElement: 5) else { return nil }
         let sums3 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutBlackNoise)
         self.drawHorizontalLines(for: sums3!, in: pixelBuffer, withWidth: width, andHeight: height)
         return sums3
