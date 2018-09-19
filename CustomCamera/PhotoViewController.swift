@@ -3,7 +3,7 @@ import MathpixClient
 import GPUImage
 
 class PhotoViewController: UIViewController {
-
+    
     var activityIndicator:UIActivityIndicatorView = UIActivityIndicatorView()
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
@@ -31,8 +31,8 @@ class PhotoViewController: UIViewController {
             }
         }
     }
-   
-  
+    
+    
     func reboot() {
         self.rebootVar = true
         self.observerOperation = ""
@@ -57,7 +57,7 @@ class PhotoViewController: UIViewController {
             
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
-        //    self.imageView.image = availableImage
+            //    self.imageView.image = availableImage
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
@@ -105,7 +105,7 @@ class PhotoViewController: UIViewController {
                 self.howManyOperationsHasBeenProcessed += 1
                 self.currentIndex = index
                 let croppedImage = self.cropImage(image: self.originalImage!, cropRect: CGRect(x: self.mathOperations[index].x, y: self.mathOperations[index].y, width: self.mathOperations[index].width, height: self.mathOperations[index].height))
-            
+                
                 MathpixClient.recognize(image: croppedImage!, outputFormats: [FormatLatex.simplified, FormatWolfram.on]) { (error, result) in
                     self.observerOperation = String(result.debugDescription)
                 }
@@ -150,11 +150,11 @@ class PhotoViewController: UIViewController {
         //if there is a consistent number of nil in mathOperantions.operations instance property, do a reboot.
         //TODO: need to change reboot function. Now it perfom the algorithm from scratch, but need to perform an image with only the interested image that has nil in mathOperantions.operations; do not consider the operation that has been successful elaborated.
         /*if self.blackNoiseValueForVeticalGrid <= 65 {
-            self.blackNoiseValueForVeticalGrid += 20
-            self.reboot()
-        }*/
+         self.blackNoiseValueForVeticalGrid += 20
+         self.reboot()
+         }*/
         
-       //stop indicator animation
+        //stop indicator animation
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
             UIApplication.shared.endIgnoringInteractionEvents()
@@ -164,7 +164,7 @@ class PhotoViewController: UIViewController {
         
     }
     
-  
+    
     
     private func extractOperations() {
         for index in self.mathOperations.indices {
@@ -181,7 +181,7 @@ class PhotoViewController: UIViewController {
         var operantionAndResult = [String]()
         var operation = ""
         var flag = false
-
+        
         for index in chars.indices {
             if chars[index] != "=" && flag == false {
                 operation.append(chars[index])
@@ -226,7 +226,7 @@ class PhotoViewController: UIViewController {
                 topIndex = 0
                 if count == topLeftX.count {
                     if let wolframOperation = self.getNumber(from: chars, from: index2+3) { //"+3" is where the result starts
-                       return wolframOperation
+                        return wolframOperation
                     }
                 }
                 count = 0
@@ -328,7 +328,7 @@ class PhotoViewController: UIViewController {
             }
             
             if myStringNumber.contains("(") {
-               myStringNumber = myStringNumber.replacingOccurrences(of: "(", with: "")
+                myStringNumber = myStringNumber.replacingOccurrences(of: "(", with: "")
             }
             
             if myStringNumber.contains(")") {
@@ -338,7 +338,7 @@ class PhotoViewController: UIViewController {
             myStringNumber = myStringNumber.replacingOccurrences(of: "}", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: ",", with: "")
         }
-
+        
         
         if checkIfOperationIsWellFormatted(for: myStringNumber.replacingOccurrences(of: " ", with: "")) {
             myStringNumber = myStringNumber.replacingOccurrences(of: " ", with: "")
@@ -561,7 +561,7 @@ class PhotoViewController: UIViewController {
         }
         return sums2
     }
-
+    
     private func fireHorizontalGrid(for sums: Array<CGPoint>, in pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<CGPoint>? {
         guard let sumsWithoutWhiteNoise = self.deleteWhiteNoise(for: sums, withThreshold: 10, leftAndRightBlackValues: 15) else { return nil}
         guard let sums2 = self.mergeConsecutiveEqualsNumbers(in: sumsWithoutWhiteNoise) else { return nil}
