@@ -4,7 +4,7 @@ import GPUImage
 
 class PhotoViewController: UIViewController {
     
-    var activityIndicator:UIActivityIndicatorView = UIActivityIndicatorView()
+    var activityIndicator:UIActivityIndicatorView!
     @IBOutlet weak var imageView: UIImageView!
     var takenPhoto: UIImage?
     var originalImage: UIImage?
@@ -47,6 +47,7 @@ class PhotoViewController: UIViewController {
         if let availableImage = self.takenPhoto {
             //set up indicator
             DispatchQueue.main.async {
+                self.activityIndicator = UIActivityIndicatorView()
                 self.activityIndicator.center = self.view.center
                 self.activityIndicator.hidesWhenStopped = true
                 self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
