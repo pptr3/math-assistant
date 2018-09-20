@@ -57,7 +57,6 @@ class PhotoViewController: UIViewController {
             
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
-            //    self.imageView.image = availableImage
             if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
                 self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
                 self.setResultFromMathpix()
@@ -70,33 +69,57 @@ class PhotoViewController: UIViewController {
     
     private func brightnessAdjustmentFilter() {
         self.bright = BrightnessAdjustment()
-        if let imageToProcess: UIImage? = self.originalImage!.filterWithOperation(self.bright) {
-            self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess!, deg: CGFloat(90.0))
-        } else {
-            //TODO: error, retry
-        }
+        let imageToProcess: UIImage = self.originalImage!.filterWithOperation(self.bright)
+        self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
     }
     
     private func cannyEdgeDetectionFilter(_ image: UIImage) -> UIImage? {
         self.canny = CannyEdgeDetection()
-        if let imageToProcess: UIImage? = image.filterWithOperation(self.canny) {
-            /* Try closing or opening or just erosion (for delete border paper) operations. Test bluring
-             self.dilation = Dilation()
-             imageToProcess = imageToProcess.filterWithOperation(self.dilation)
-             self.dilation = Dilation()
-             imageToProcess = imageToProcess.filterWithOperation(self.dilation)*/
-            //self.takenPhoto = imageToProcess
-            return imageToProcess
-        } else {
-            //TODO: error, retry
-            return nil
-        }
+        let imageToProcess: UIImage = image.filterWithOperation(self.canny)
+        return imageToProcess
     }
     
     private func segmentMathOperations(for image: UIImage) {
         if let processedImage = self.processPixels(in: image) {
             self.filterImage = processedImage
         }
+    }
+    
+    private func processPixels(in image: UIImage) -> UIImage? {
+        guard let inputCGImage = image.cgImage else {
+            print("unable to get cgImage")
+            return nil
+        }
+        let colorSpace       = CGColorSpaceCreateDeviceRGB()
+        let width            = inputCGImage.width
+        let height           = inputCGImage.height
+        let bytesPerPixel    = 4
+        let bitsPerComponent = 8
+        let bytesPerRow      = bytesPerPixel * width
+        let bitmapInfo       = RGBA32.bitmapInfo
+        
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
+            print("unable to create context")
+            return nil
+        }
+        context.draw(inputCGImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        
+        guard let buffer = context.data else {
+            print("unable to get context data")
+            return nil
+        }
+        
+        let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
+        
+        
+        let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
+        if let sums = self.calculateSum(from: foregrounds!) {
+            guard let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height) else { return nil }
+            self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
+        }
+        let outputCGImage = context.makeImage()!
+        let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
+        return outputImage
     }
     
     private func setResultFromMathpix() {
@@ -117,8 +140,8 @@ class PhotoViewController: UIViewController {
     
     private func correctOperations() {
         self.extractOperations()
-        //delete nil values in mathOperations
         
+        //delete nil values in mathOperations
         var saveMathOperations = self.mathOperations
         saveMathOperations.removeAll()
         for index in self.mathOperations.indices {
@@ -131,37 +154,26 @@ class PhotoViewController: UIViewController {
         for index in self.mathOperations.indices {
             if let stringWithMathematicalOperation = self.getOperation(from: Array(self.mathOperations[index].operation!)) {
                 print(stringWithMathematicalOperation)
-                let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
-                let result: Double = exp.expressionValue(with: nil, context: nil) as! Double
-                print(result)
-                if let val = Double(stringWithMathematicalOperation[1]) {
-                    print(val)
-                    if result == val { //bug == with Double
+                if stringWithMathematicalOperation[1].isNumber {
+                    let exp: NSExpression = NSExpression(format: stringWithMathematicalOperation.first!)
+                    guard let result: Double = exp.expressionValue(with: nil, context: nil) as? Double else {return}
+                    print(result)
+                    guard let doubleVal = Double(stringWithMathematicalOperation[1]) else {return}
+                    if result == doubleVal { //bug == with Double
                         self.mathOperations[index].isCorrect = true
                     } else {
                         self.mathOperations[index].isCorrect = false
                     }
-                } else {
-                    //TODO: make pop-up appear
                 }
             }
         }
         self.displayResult()
-        //if there is a consistent number of nil in mathOperantions.operations instance property, do a reboot.
-        //TODO: need to change reboot function. Now it perfom the algorithm from scratch, but need to perform an image with only the interested image that has nil in mathOperantions.operations; do not consider the operation that has been successful elaborated.
-        /*if self.blackNoiseValueForVeticalGrid <= 65 {
-         self.blackNoiseValueForVeticalGrid += 20
-         self.reboot()
-         }*/
-        
+       
         //stop indicator animation
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
             UIApplication.shared.endIgnoringInteractionEvents()
         }
-        
-        print(self.blackNoiseValueForVeticalGrid)
-        
     }
     
     
@@ -361,7 +373,6 @@ class PhotoViewController: UIViewController {
         var equals = false
         var operators = false
         for index in 1..<operation.count - 1 {
-            //TODO: check if there are two operators or equals in a row. Check if each operator/equals has on left and right a number.
             
             if !operators, (charsOperation[index] == "+" || charsOperation[index] == "-" || charsOperation[index] == "*" || charsOperation[index] == "/") {
                 operators = true
@@ -386,43 +397,6 @@ class PhotoViewController: UIViewController {
     
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
-    }
-    
-    private func processPixels(in image: UIImage) -> UIImage? {
-        guard let inputCGImage = image.cgImage else {
-            print("unable to get cgImage")
-            return nil
-        }
-        let colorSpace       = CGColorSpaceCreateDeviceRGB()
-        let width            = inputCGImage.width
-        let height           = inputCGImage.height
-        let bytesPerPixel    = 4
-        let bitsPerComponent = 8
-        let bytesPerRow      = bytesPerPixel * width
-        let bitmapInfo       = RGBA32.bitmapInfo
-        
-        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
-            print("unable to create context")
-            return nil
-        }
-        context.draw(inputCGImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-        
-        guard let buffer = context.data else {
-            print("unable to get context data")
-            return nil
-        }
-        
-        let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
-        
-        
-        let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
-        if let sums = self.calculateSum(from: foregrounds!) {
-            guard let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height) else { return nil }
-            self.fireVerticalGrid(for: sums3, in: pixelBuffer, withWidth: width, andHeight: height)
-        }
-        let outputCGImage = context.makeImage()!
-        let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
-        return outputImage
     }
     
     private func calculateHorizontalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int>? {
