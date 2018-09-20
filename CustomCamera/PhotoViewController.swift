@@ -51,25 +51,35 @@ class PhotoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
         if let availableImage = self.takenPhoto {
             //set up indicator
-            DispatchQueue.main.async {
-                self.activityIndicator = UIActivityIndicatorView()
-                self.activityIndicator.center = self.view.center
-                self.activityIndicator.hidesWhenStopped = true
-                self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
-                self.view.addSubview(self.activityIndicator)
-                self.activityIndicator.startAnimating()
-                UIApplication.shared.beginIgnoringInteractionEvents()
-            }
+             DispatchQueue.main.async {
+                 self.activityIndicator = UIActivityIndicatorView()
+                 self.activityIndicator.center = self.view.center
+                 self.activityIndicator.hidesWhenStopped = true
+                 self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+                 self.view.addSubview(self.activityIndicator)
+                 self.activityIndicator.startAnimating()
+                 UIApplication.shared.beginIgnoringInteractionEvents()
+             }
+             self.originalImage = availableImage
+             self.brightnessAdjustmentFilter()
+             self.cannyEdgeDetectionFilter(for: availableImage)
+        } 
+    }
+    
+    func createAlert(withTitle title: String, andMessage message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: { (action) in
+            alert.dismiss(animated: true, completion: nil)
             
-            self.originalImage = availableImage
-            self.brightnessAdjustmentFilter()
-            self.cannyEdgeDetectionFilter(for: availableImage)
-            
-            
-        }
+            //this need to dismiss the entire PhotoViewController
+            self.dismiss(animated: true, completion: nil)
+        }))
+        self.present(alert, animated: true, completion: nil)
     }
     
     private func brightnessAdjustmentFilter() {
@@ -104,13 +114,19 @@ class PhotoViewController: UIViewController {
         } else {
             print("the image is completely black indeed")
             //if the image is black, do not process it and dismiss
+            
+            
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
                 UIApplication.shared.endIgnoringInteractionEvents()
-                self.dismiss(animated: true, completion: nil)
             }
+           
+            self.createAlert(withTitle: "Ops..", andMessage: "Something went wrong. Try again.")
+            
         }
     }
+    
+  
     
     private func processPixels(in image: UIImage) -> UIImage? {
         guard let inputCGImage = image.cgImage else {
