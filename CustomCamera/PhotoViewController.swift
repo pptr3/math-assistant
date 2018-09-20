@@ -13,7 +13,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
-    var blackNoiseValueForHorizontalGrid = 22
+    var blackNoiseValueForHorizontalGrid = 16
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -31,6 +31,13 @@ class PhotoViewController: UIViewController {
             }
         }
     }
+    var cannyFilteredImage: UIImage!
+    var cannyObserver: Bool = false {
+        didSet {
+            self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: self.cannyFilteredImage!, deg: CGFloat(90.0)))
+            self.setResultFromMathpix()
+        }
+    }
     
     
     func reboot() {
@@ -44,6 +51,7 @@ class PhotoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         if let availableImage = self.takenPhoto {
             //set up indicator
             DispatchQueue.main.async {
@@ -58,11 +66,7 @@ class PhotoViewController: UIViewController {
             
             self.originalImage = availableImage
             self.brightnessAdjustmentFilter()
-            if let cannyFilteredImage = self.cannyEdgeDetectionFilter(availableImage) {
-                self.segmentMathOperations(for: self.imageRotatedByDegrees(oldImage: cannyFilteredImage, deg: CGFloat(90.0)))
-                self.setResultFromMathpix()
-                UIImageWriteToSavedPhotosAlbum(self.filterImage!, nil, nil, nil)
-            }
+            self.cannyEdgeDetectionFilter(for: availableImage)
             
             
         }
@@ -70,19 +74,41 @@ class PhotoViewController: UIViewController {
     
     private func brightnessAdjustmentFilter() {
         self.bright = BrightnessAdjustment()
-        let imageToProcess: UIImage = self.originalImage!.filterWithOperation(self.bright)
-        self.originalImage! = self.imageRotatedByDegrees(oldImage: imageToProcess, deg: CGFloat(90.0))
+        let pictureInput = PictureInput(image: self.originalImage!)
+        let pictureOutput = PictureOutput()
+        pictureOutput.imageAvailableCallback = {image in
+            print("Brightness completed")
+            self.originalImage! = self.imageRotatedByDegrees(oldImage: image, deg: CGFloat(90.0))
+        }
+        pictureInput --> self.bright --> pictureOutput
+        pictureInput.processImage(synchronously:true)
     }
     
-    private func cannyEdgeDetectionFilter(_ image: UIImage) -> UIImage? {
+    private func cannyEdgeDetectionFilter(for image: UIImage) {
         self.canny = CannyEdgeDetection()
-        let imageToProcess: UIImage = image.filterWithOperation(self.canny)
-        return imageToProcess
+        let pictureInput = PictureInput(image: image)
+        let pictureOutput = PictureOutput()
+        pictureOutput.imageAvailableCallback = {image in
+            print("Canny completed")
+            self.cannyFilteredImage = image
+            self.cannyObserver = true
+        }
+        pictureInput --> self.canny --> pictureOutput
+        pictureInput.processImage(synchronously:true)
     }
     
     private func segmentMathOperations(for image: UIImage) {
         if let processedImage = self.processPixels(in: image) {
+            UIImageWriteToSavedPhotosAlbum(processedImage, nil, nil, nil)
             self.filterImage = processedImage
+        } else {
+            print("the image is completely black indeed")
+            //if the image is black, do not process it and dismiss
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                UIApplication.shared.endIgnoringInteractionEvents()
+                self.dismiss(animated: true, completion: nil)
+            }
         }
     }
     
@@ -112,7 +138,9 @@ class PhotoViewController: UIViewController {
         
         let pixelBuffer = buffer.bindMemory(to: RGBA32.self, capacity: width * height)
         
-        
+        if self.isImageBlack(from: pixelBuffer, withWidth: width, andHeight: height) {
+            return nil
+        }
         let foregrounds = self.calculateHorizontalForeground(from: pixelBuffer, withWidth: width, andHeight: height)
         if let sums = self.calculateSum(from: foregrounds!) {
             guard let sums3 = self.fireHorizontalGrid(for: sums, in: pixelBuffer, withWidth: width, andHeight: height) else { return nil }
@@ -121,6 +149,21 @@ class PhotoViewController: UIViewController {
         let outputCGImage = context.makeImage()!
         let outputImage = UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
         return outputImage
+    }
+    
+    //return true if the image is completely black
+    func isImageBlack(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Bool {
+        var foregroundAmount = 0
+        for row in 0 ..< Int(height) {
+            for column in 0 ..< Int(width) {
+                let offset = row * width + column
+                if pixelBuffer[offset] == .white {
+                    foregroundAmount += 1
+                }
+            }
+        }
+        print("number of pixels: \(foregroundAmount)")
+        return foregroundAmount == 0
     }
     
     private func setResultFromMathpix() {
@@ -246,6 +289,25 @@ class PhotoViewController: UIViewController {
             }
         }
         return nil
+    }
+    
+    
+    
+    
+    @IBAction func savePhoto(_ sender: Any) {
+        DispatchQueue.main.async {
+            guard let imageToSave = self.imageView.image else {
+                return
+            }
+            //UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
+            self.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    @IBAction func goBack(_ sender: Any) {
+        DispatchQueue.main.async {
+            self.dismiss(animated: true, completion: nil)
+        }
     }
     
     private func getNumber(from chars: [Character], from index: Int ) -> String? {
@@ -384,20 +446,6 @@ class PhotoViewController: UIViewController {
             }
         }
         return equals && operators
-    }
-    
-    
-    
-    @IBAction func savePhoto(_ sender: Any) {
-        guard let imageToSave = self.imageView.image else {
-            return
-        }
-        UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @IBAction func goBack(_ sender: Any) {
-        self.dismiss(animated: true, completion: nil)
     }
     
     private func calculateHorizontalForeground(from pixelBuffer:  UnsafeMutablePointer<PhotoViewController.RGBA32>, withWidth width: Int, andHeight height: Int) -> Array<Int>? {
