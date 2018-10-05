@@ -13,7 +13,7 @@ class PhotoViewController: UIViewController {
     var dilation: Dilation!
     var bright: BrightnessAdjustment!
     var blackNoiseValueForVeticalGrid = 45
-    var blackNoiseValueForHorizontalGrid = 16
+    var blackNoiseValueForHorizontalGrid = 25
     var mathOperations =  Array<MathOperation>()
     var currentIndex: Int!
     var rebootVar = false
@@ -351,6 +351,12 @@ class PhotoViewController: UIViewController {
         
         if myStringNumber.contains("times") {
             myStringNumber = myStringNumber.replacingOccurrences(of: "times", with: "*")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+            myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
+        }
+        
+        if myStringNumber.contains("hline") {
+            myStringNumber = myStringNumber.replacingOccurrences(of: "hline", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
             myStringNumber = myStringNumber.replacingOccurrences(of: "\\", with: "")
         }
